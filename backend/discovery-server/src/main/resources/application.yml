@@ -1,0 +1,19 @@
+server:
+  port: 6761
+
+spring:
+  application:
+    name: discovery-server
+  config:
+    import: configserver:http://localhost:6002
+
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://localhost:6761/eureka/
+
+  server:
+    enable-self-preservation: false
+    enable-replication: false
