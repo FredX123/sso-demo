@@ -4,12 +4,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientProviderBuilder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.client.oidc.web.server.logout.OidcClientInitiatedServerLogoutSuccessHandler;
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.DefaultReactiveOAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.authentication.RedirectServerAuthenticationEntryPoint;
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
@@ -19,6 +25,8 @@ import org.springframework.web.server.ServerWebExchange;
 
 import java.net.URI;
 import java.util.List;
+
+import static org.springframework.security.config.Customizer.withDefaults;
 
 @Slf4j
 @Configuration
@@ -42,11 +50,45 @@ public class SecurityConfig {
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers("/actuator/**", "/public/**").permitAll()
                         .anyExchange().authenticated())
+                .exceptionHandling(e -> e
+                                // For APIs, return 401 instead of redirecting
+                                .authenticationEntryPoint((exchange, ex) -> {
+                                    if (exchange.getRequest().getPath().toString().startsWith("/api/")) {
+                                        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                                        return exchange.getResponse().setComplete();
+                                    }
+                                    // For pages, keep default redirect to login
+                                    return new RedirectServerAuthenticationEntryPoint("/oauth2/authorization/myb-app")
+                                            .commence(exchange, ex);
+                                }))
                 .oauth2Login(login -> login
                         .authenticationSuccessHandler(redirectToAngular())) // redirects to Angular after login
+                .oauth2Client(withDefaults())
                 .logout(logout -> logout
                         .logoutSuccessHandler(oidcLogoutSuccessHandler(clientRegistrationRepository)))
                 .build(); // ✅ TokenRelay is configured via application.yml route filters
+    }
+
+    /**
+     * ReactiveOAuth2AuthorizedClientManager automatically refreshes access tokens using the stored
+     * refresh token—including rotation. If the refresh token is rotated, Spring will persist the new one via
+     * the ReactiveOAuth2AuthorizedClientService/Repository.
+     */
+    @Bean
+    public ReactiveOAuth2AuthorizedClientManager authorizedClientManager(
+            ReactiveClientRegistrationRepository registrations,
+            ServerOAuth2AuthorizedClientRepository authorizedClients) {
+
+        var provider = ReactiveOAuth2AuthorizedClientProviderBuilder.builder()
+                .authorizationCode()
+                .refreshToken()  // <- enables refresh on expiry; supports rotation transparently
+                .build();
+
+        var manager =
+                new DefaultReactiveOAuth2AuthorizedClientManager(registrations, authorizedClients);
+        manager.setAuthorizedClientProvider(provider);
+
+        return manager;
     }
 
     private ServerAuthenticationSuccessHandler redirectToAngular() {
