@@ -1,0 +1,19 @@
+<mcl-header
+  [appTitle]="'MyB'"
+  [loginUrl]="env.loginUrl"
+  [logoutUrl]="env.gatewayBaseUrl + '/logout'"
+  [crossAppUrl]="env.crossAppUrl"
+  [crossAppLabel]="'Go to SADA'">
+  <span left><a routerLink="/dashboard">Dashboard</a></span>
+</mcl-header>
+
+<div class="p-4">
+  <h1>MyB App</h1>
+  <p>SSO via API Gateway (Okta behind the scenes).</p>
+
+  <button (click)="whoAmI()">Call /api/auth/me</button>
+  <pre *ngIf="me">{{ me | json }}</pre>
+
+  <button (click)="callMyB()">Call /api/myb/hello</button>
+  <pre *ngIf="data">{{ data | json }}</pre>
+</div>

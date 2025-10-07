@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
@@ -15,13 +14,12 @@ import org.springframework.security.oauth2.client.registration.ReactiveClientReg
 import org.springframework.security.oauth2.client.web.DefaultReactiveOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.security.web.server.authentication.RedirectServerAuthenticationEntryPoint;
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
-import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.WebFilter;
 
 import java.net.URI;
 import java.util.List;
@@ -51,16 +49,28 @@ public class SecurityConfig {
                         .pathMatchers("/actuator/**", "/public/**").permitAll()
                         .anyExchange().authenticated())
                 .exceptionHandling(e -> e
-                                // For APIs, return 401 instead of redirecting
-                                .authenticationEntryPoint((exchange, ex) -> {
-                                    if (exchange.getRequest().getPath().toString().startsWith("/api/")) {
-                                        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                                // APIs: 401 JSON (no redirect)
+                                .authenticationEntryPoint((exchange, exAuth) -> {
+                                    var path = exchange.getRequest().getPath().value();
+                                    if (path.startsWith("/api/")) {
+                                        exchange.getResponse().setStatusCode(org.springframework.http.HttpStatus.UNAUTHORIZED);
                                         return exchange.getResponse().setComplete();
                                     }
-                                    // For pages, keep default redirect to login
-                                    return new RedirectServerAuthenticationEntryPoint("/oauth2/authorization/myb-app")
-                                            .commence(exchange, ex);
-                                }))
+                                    // Pages: fall back to default redirect-to-login (handled by oauth2Login())
+                                    return new org.springframework.security.web.server.authentication.RedirectServerAuthenticationEntryPoint(
+                                            "/oauth2/authorization/myb-app"  // a sane default; see note below for per-app
+                                    ).commence(exchange, exAuth);
+                                })
+                                .accessDeniedHandler((exchange, exDenied) -> {
+                                    // APIs: 403 JSON
+                                    var path = exchange.getRequest().getPath().value();
+                                    if (path.startsWith("/api/")) {
+                                        exchange.getResponse().setStatusCode(org.springframework.http.HttpStatus.FORBIDDEN);
+                                        return exchange.getResponse().setComplete();
+                                    }
+                                    return reactor.core.publisher.Mono.error(exDenied);
+                                })
+                                  )
                 .oauth2Login(login -> login
                         .authenticationSuccessHandler(redirectToAngular())) // redirects to Angular after login
                 .oauth2Client(withDefaults())
@@ -91,16 +101,38 @@ public class SecurityConfig {
         return manager;
     }
 
+    /**
+     * For links like /oauth2/authorization/myb-app?redirectTo=/dashboard
+     */
+    @Bean
+    public WebFilter captureRedirectTo() {
+        return (exchange, chain) -> {
+            var req = exchange.getRequest();
+            var path = req.getPath().value();
+
+            // Only intercept the OAuth2 authorization endpoints
+            if (path.startsWith("/oauth2/authorization/")) {
+                var redirectTo = req.getQueryParams().getFirst("redirectTo");
+                if (redirectTo != null && !redirectTo.isBlank()) {
+                    return exchange.getSession().flatMap(session -> {
+                        session.getAttributes().put("redirectTo", redirectTo);
+                        return chain.filter(exchange);
+                    });
+                }
+            }
+            return chain.filter(exchange);
+        };
+    }
+
     private ServerAuthenticationSuccessHandler redirectToAngular() {
         return (exchange, authentication) -> {
-            ServerWebExchange webExchange = exchange.getExchange();
+            var webExchange = exchange.getExchange();
 
-            String defaultRedirect = getClientRedirectUrl((OAuth2AuthenticationToken) authentication);
+            var  defaultRedirect = getClientRedirectUrl((OAuth2AuthenticationToken) authentication); // e.g. http://localhost:4200, http://localhost:4201
 
             return webExchange.getSession().flatMap(session -> {
-                String redirectTo = (String) session.getAttributes().get("redirectTo");
+                String redirectTo = (String) session.getAttributes().get("redirectTo");  // Read session attribute "redirectTo"
                 log.info("Redirecting to {}", redirectTo);
-
                 // Clear it from session after use
                 session.getAttributes().remove("redirectTo");
 
@@ -120,10 +152,10 @@ public class SecurityConfig {
             ReactiveClientRegistrationRepository clientRegistrationRepository) {
 
         return (exchange, authentication) -> {
-            String redirectUri = getClientRedirectUrl((OAuth2AuthenticationToken) authentication);
+            String redirectUri = getClientRedirectUrl(
+                    authentication instanceof OAuth2AuthenticationToken o ? o : null);
 
-            OidcClientInitiatedServerLogoutSuccessHandler handler =
-                    new OidcClientInitiatedServerLogoutSuccessHandler(clientRegistrationRepository);
+            var handler = new OidcClientInitiatedServerLogoutSuccessHandler(clientRegistrationRepository);
             handler.setPostLogoutRedirectUri(String.valueOf(URI.create(redirectUri)));
 
             return handler.onLogoutSuccess(exchange, authentication);
@@ -131,13 +163,12 @@ public class SecurityConfig {
     }
 
     private String getClientRedirectUrl(OAuth2AuthenticationToken authentication) {
-        String client = authentication.getAuthorizedClientRegistrationId();
+        String client = (authentication != null) ? authentication.getAuthorizedClientRegistrationId() : null;
+        if ("sada-app".equals(client)) {
+            return sadaAppUrl;
+        }
 
-        return switch (client) {
-            case "myb-app" -> mybAppUrl;
-            case "sada-app" -> sadaAppUrl;
-            default -> mybAppUrl; // fallback
-        };
+        return mybAppUrl;
     }
 
     @Bean

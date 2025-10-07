@@ -1,0 +1,19 @@
+<mcl-header
+  [appTitle]="'SADA'"
+  [loginUrl]="env.loginUrl"
+  [logoutUrl]="env.gatewayBaseUrl + '/logout'"
+  [crossAppUrl]="env.crossAppUrl"
+  [crossAppLabel]="'Go to MyB'">
+  <span left><a routerLink="/my-applications">My Applications</a></span>
+</mcl-header>
+
+<div class="p-4">
+  <h1>SADA App</h1>
+  <p>SSO via API Gateway (Okta behind the scenes).</p>
+
+  <button (click)="whoAmI()">Call /api/me</button>
+  <pre *ngIf="me">{{ me | json }}</pre>
+
+  <button (click)="callSada()">Call SADA API</button>
+  <pre *ngIf="data">{{ data | json }}</pre>
+</div>

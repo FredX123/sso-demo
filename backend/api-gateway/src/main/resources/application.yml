@@ -50,15 +50,15 @@ spring:
         registration:
           myb-app:
             provider: okta
-            client-id: 0oaooqy915xbkRCKT5d7
-            client-secret: Ew-4IiHuFr6cgY1w3JhJ5PFWzvB-yZGx6xdD_y3rxhSWioOG-U_NGsCViCvlAxfe
+            client-id: 0oaqp2kj9zEIU0LTy5d7
+            client-secret: J21HhBvkKwJeoA2Rdb7SExC4YbRyS2fTUo3n0XLCx9yeaWKjDj_NcgpB5AgCDL4C
             scope: openid, profile, email, offline_access
             authorization-grant-type: authorization_code
             redirect-uri: "{baseUrl}/login/oauth2/code/myb-app"
           sada-app:
             provider: okta
-            client-id: 0oaoor5c1wl5NU1ef5d7
-            client-secret: AC-_PThmy1t69J7Q1Je2g4HNRXq1mPqAUGDspKsy6dTFGk7RVV00a5jKiwZVuJ3z
+            client-id: 0oaqp2q4zy9xzTqE95d7
+            client-secret: eSNA20W20TgxcVLAXajyvGjei7cB7S48phxmy_RIUSCh4qZNcO2UfaoXUhPqgYiS
             scope: openid, profile, email, offline_access
             authorization-grant-type: authorization_code
             redirect-uri: "{baseUrl}/login/oauth2/code/sada-app"
@@ -79,3 +79,7 @@ client:
   redirect-url:
     myb-app: http://localhost:4200
     sada-app: http://localhost:4201
+
+app:
+  oauth2:
+    client-ids: myb-app,sada-app
