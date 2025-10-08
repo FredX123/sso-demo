@@ -20,11 +20,11 @@ export class HomeComponent {
 
   private destroy$ = new Subject<void>();
 
-  constructor(private authService: AuthService,
+  constructor(private auth: AuthService,
     private sadaService: SadaService) {}
 
   whoAmI(): void {
-    this.authService.whoAmI().pipe(
+    this.auth.me().pipe(
       takeUntil(this.destroy$)
     ).subscribe(resp => {
       this.me = resp;
@@ -36,6 +36,13 @@ export class HomeComponent {
       takeUntil(this.destroy$)
     ).subscribe(resp => {
       this.data = resp;
+    });
+  }
+
+  onLogout() {
+    this.auth.logout().subscribe({
+      next: () => window.location.href = this.env.loginUrl, // or navigate to your app root
+      error: () => window.location.href = this.env.loginUrl
     });
   }
 }

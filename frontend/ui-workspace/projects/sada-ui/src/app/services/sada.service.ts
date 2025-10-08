@@ -15,6 +15,6 @@ export class SadaService {
   constructor(private http: HttpClient) { }
 
   callSada(): Observable<any> {
-    return this.http.get(`${this.env.apiBaseUrl}/api/hello`, { withCredentials: true });
+    return this.http.get(`${this.env.apiBaseUrl}/hello`, { withCredentials: true });
   }
 }

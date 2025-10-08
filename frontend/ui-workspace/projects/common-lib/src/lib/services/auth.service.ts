@@ -1,22 +1,33 @@
 import { HttpClient } from '@angular/common/http';
-import { inject, Injectable, InjectionToken } from '@angular/core';
-import { GATEWAY_BASE_URL } from 'common-lib';
-import { Observable } from 'rxjs';
+import { inject, Injectable } from '@angular/core';
+import { catchError, map, Observable, of } from 'rxjs';
+import { API_AUTH_BASE_URL, GATEWAY_BASE_URL } from '../core/tokens';
+import { AuthMe } from '../model/auth.models';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
 
-  gatewayBaseUrl = inject(GATEWAY_BASE_URL);
+  private readonly http = inject(HttpClient);
+  private readonly authBase = inject<string>(API_AUTH_BASE_URL);
+  private readonly gatewayBase = inject<string>(GATEWAY_BASE_URL);
 
-  constructor(private http: HttpClient) { }
-
-  whoAmI(): Observable<any> {
-    return this.http.get(`${this.gatewayBaseUrl}/api/auth/me`, { withCredentials: true });
+/** GET /api/auth/me via the gateway; includes credentials (session cookie). */
+  me() {
+    return this.http.get<AuthMe>(`${this.authBase}/me`, { withCredentials: true })
+      .pipe(
+        map(r => r),
+        catchError(() => of({ authenticated: false } as AuthMe))
+      );
   }
 
-  logout(logoutUrl: string): Observable<any> {
-    return this.http.get(`${logoutUrl}`, { withCredentials: true });
+  refresh() {
+    return this.http.get(`${this.gatewayBase}/api/token/refresh`, { withCredentials: true });
+  }
+
+  logout() {
+    // Spring Security default logout at the gateway; Okta RP-logout is handled server-side.
+    return this.http.post(`${this.gatewayBase}/logout`, {}, { withCredentials: true, observe: 'response' });
   }
 }

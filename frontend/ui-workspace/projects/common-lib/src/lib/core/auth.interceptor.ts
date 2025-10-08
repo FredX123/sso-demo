@@ -1,14 +1,12 @@
 import { HttpErrorResponse, HttpInterceptorFn, HttpRequest } from '@angular/common/http';
 import { HttpClient } from '@angular/common/http';
-import { inject, InjectionToken } from '@angular/core';
+import { inject } from '@angular/core';
 import { catchError, switchMap, throwError } from 'rxjs';
-
-// ✅ Use an InjectionToken (not a string) for DI
-export const GATEWAY_BASE_URL = new InjectionToken<string>('GATEWAY_BASE_URL');
+import { GATEWAY_BASE_URL } from './tokens';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const http = inject(HttpClient);
-  const gatewayBaseUrl = inject(GATEWAY_BASE_URL);
+  const gatewayBaseUrl = inject<string>(GATEWAY_BASE_URL);
 
   // Always send cookies to the gateway (session-based auth)
   const withCreds = req.clone({ withCredentials: true });
@@ -22,6 +20,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         const retryReq: HttpRequest<any> = withCreds.clone({
           setHeaders: { 'X-Retry': '1' },
         });
+
         // Ask gateway to refresh (it uses the session's refresh token), then retry once
         return http.get(`${gatewayBaseUrl}/api/token/refresh`, { withCredentials: true }).pipe(
           switchMap(() => next(retryReq)),

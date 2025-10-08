@@ -1,9 +1,9 @@
 <mcl-header
   [appTitle]="'MyB'"
   [loginUrl]="env.loginUrl"
-  [logoutUrl]="env.gatewayBaseUrl + '/logout'"
   [crossAppUrl]="env.crossAppUrl"
-  [crossAppLabel]="'Go to SADA'">
+  [crossAppLabel]="'Go to SADA'"
+  (logout)="onLogout()">
   <span left><a routerLink="/dashboard">Dashboard</a></span>
 </mcl-header>
 
