@@ -1,0 +1,19 @@
+  <div *ngIf="visible">
+    <div class="modal fade show" tabindex="-1" style="display:block;" role="dialog" aria-modal="true">
+      <div class="modal-dialog">
+        <div class="modal-content shadow">
+          <div class="modal-header">
+            <h5 class="modal-title">{{ title }}</h5>
+            <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
+          </div>
+          <div class="modal-body">
+            <p class="mb-0">{{ message }}</p>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-primary" (click)="close()">OK</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+  </div>

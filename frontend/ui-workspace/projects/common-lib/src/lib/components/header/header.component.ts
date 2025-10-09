@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Subject } from 'rxjs';
+import { Subscription } from 'rxjs';
+import { AuthStateService } from '../../services/auth-state.service';
 
 @Component({
   standalone: true,
@@ -9,12 +10,30 @@ import { Subject } from 'rxjs';
   imports: [CommonModule, RouterLink],
   templateUrl: 'header.component.html',
 })
-export class HeaderComponent {
+export class HeaderComponent implements OnInit, OnDestroy {
   @Input() appTitle = 'App';
   @Input() loginUrl = '';
   @Input() crossAppUrl = '';
   @Input() crossAppLabel = 'Go to Other App';
-  @Input() showLogout = true;
 
   @Output() logout = new EventEmitter<void>();
+
+  isLoggedIn = false;
+  username = '';
+  private sub?: Subscription;
+
+  constructor(private authState: AuthStateService) {}
+
+  ngOnInit(): void {
+      this.sub = this.authState.me$.subscribe(me => {
+        console.log("authenticated: ", me.authenticated);
+
+        this.isLoggedIn = !!me.authenticated;
+        this.username = me.name || me.email || 'N/A';
+      })
+  }
+
+  ngOnDestroy(): void {
+      this.sub?.unsubscribe();
+  }
 }

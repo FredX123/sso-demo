@@ -1,11 +1,23 @@
-    <header style="display:flex;gap:1rem;align-items:center;padding:0.75rem;border-bottom:1px solid #ddd">
-      <a routerLink="/">{{ appTitle }}</a>
+  <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom mb-3">
+    <div class="container-fluid">
+      <a class="navbar-brand" routerLink="/">{{ appTitle }}</a>
 
-      <ng-content select="[left]"></ng-content>
+      <div class="collapse navbar-collapse">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <ng-content select="[left]"></ng-content>
+        </ul>
 
-      <span style="flex:1"></span>
+        <div class="d-flex align-items-center gap-2">
+          <span class="text-secondary" *ngIf="isLoggedIn && username">Hi, {{ username }}</span>
 
-      <a [href]="loginUrl">Login</a>
-      <button *ngIf="showLogout" type="button" (click)="logout.emit()">Logout</button>
-      <a [href]="crossAppUrl">{{ crossAppLabel }}</a>
-    </header>
+          <a *ngIf="!isLoggedIn" class="btn btn-outline-primary btn-sm" [href]="loginUrl">Login</a>
+
+          <button *ngIf="isLoggedIn" class="btn btn-outline-danger btn-sm" type="button" (click)="logout.emit()">
+            Logout
+          </button>
+
+          <a class="btn btn-link btn-sm" [href]="crossAppUrl">{{ crossAppLabel }}</a>
+        </div>
+      </div>
+    </div>
+  </nav>

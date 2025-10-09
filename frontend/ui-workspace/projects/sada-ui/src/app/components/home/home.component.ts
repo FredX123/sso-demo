@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
-import { AuthService, HeaderComponent } from 'common-lib';
 import { CommonModule } from '@angular/common';
-import { Subject, takeUntil } from 'rxjs';
-import { environment } from '../../../environments/environment';
-import { SadaService } from '../../services/sada.service';
 import { RouterLink } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
+
+import { environment } from '../../../environments/environment';
+import { AuthService, HeaderComponent } from 'common-lib';
+import { SadaService } from '../../services/sada.service';
 
 @Component({
   standalone: true,
@@ -20,8 +21,7 @@ export class HomeComponent {
 
   private destroy$ = new Subject<void>();
 
-  constructor(private auth: AuthService,
-    private sadaService: SadaService) {}
+  constructor(private auth: AuthService, private sadaService: SadaService) {}
 
   whoAmI(): void {
     this.auth.me().pipe(

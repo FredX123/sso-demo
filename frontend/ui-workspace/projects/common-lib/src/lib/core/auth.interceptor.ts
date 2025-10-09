@@ -1,32 +1,58 @@
-import { HttpErrorResponse, HttpInterceptorFn, HttpRequest } from '@angular/common/http';
-import { HttpClient } from '@angular/common/http';
+import { HttpInterceptorFn, HttpErrorResponse, HttpClient } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { catchError, switchMap, throwError } from 'rxjs';
 import { GATEWAY_BASE_URL } from './tokens';
+import { catchError, switchMap, throwError } from 'rxjs';
+import { AuthService, DialogService } from 'common-lib';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const http = inject(HttpClient);
-  const gatewayBaseUrl = inject<string>(GATEWAY_BASE_URL);
+  const gatewayBaseUrl = inject(GATEWAY_BASE_URL);
+  const dialog = inject(DialogService);
+  const auth = inject(AuthService);
 
-  // Always send cookies to the gateway (session-based auth)
+  // Endpoints we must NOT try to refresh for (to avoid loops)
+  const REFRESH_URL = `${gatewayBaseUrl}/api/token/refresh`;
+  const EXCLUDED_PREFIXES = [
+    REFRESH_URL,
+    `${gatewayBaseUrl}/logout`,
+    `${gatewayBaseUrl}/oauth2/authorization/`, // any OIDC start
+  ];
+
+  const isExcluded = EXCLUDED_PREFIXES.some(u => req.url.startsWith(u));
+
+  // Always send cookies (gateway session)
   const withCreds = req.clone({ withCredentials: true });
+  let triedRefresh = false;
 
-  // Prevent infinite refresh loops: retry at most once per request
-  const alreadyRetried = withCreds.headers.has('X-Retry');
+  // If this request is to an excluded URL, just pass it through unchanged.
+  if (isExcluded) {
+    return next(withCreds);
+  }
 
   return next(withCreds).pipe(
     catchError((err: HttpErrorResponse) => {
-      if (err.status === 401 && !alreadyRetried) {
-        const retryReq: HttpRequest<any> = withCreds.clone({
-          setHeaders: { 'X-Retry': '1' },
-        });
+      // Only handle 401 once, and never for excluded targets
+      if (err.status === 401 && !triedRefresh) {
+        triedRefresh = true;
 
-        // Ask gateway to refresh (it uses the session's refresh token), then retry once
-        return http.get(`${gatewayBaseUrl}/api/token/refresh`, { withCredentials: true }).pipe(
-          switchMap(() => next(retryReq)),
-          catchError(() => throwError(() => err)) // if refresh fails, surface original 401
+        // Try a single silent refresh
+        return auth.refresh().pipe(
+          // refresh succeeded → pull /me (to update header) → retry original request
+          switchMap(() => auth.me()),
+          switchMap(() => next(withCreds)),
+
+          // refresh failed (likely not logged in) → show dialog and stop
+          catchError(() => {
+            dialog.open(
+              'Your session has expired or you are not logged in. Please sign in again.',
+              'Authentication Required'
+            );
+            return throwError(() => err);
+          })
         );
       }
+
+      // Any other error (or second 401) → propagate
       return throwError(() => err);
     })
   );

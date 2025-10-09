@@ -1,16 +1,16 @@
 import { Component } from '@angular/core';
-import { environment } from '../../../environments/environment';
-import { HeaderComponent } from 'common-lib';
 import { CommonModule } from '@angular/common';
-import { Subject, takeUntil } from 'rxjs';
-import { MyBService } from '../../services/myb.service';
 import { RouterLink } from '@angular/router';
-import { AuthService } from 'common-lib';
+import { Subject, takeUntil } from 'rxjs';
+
+import { environment } from '../../../environments/environment';
+import { AuthService, HeaderComponent } from 'common-lib';
+import { MyBService } from '../../services/myb.service';
 
 @Component({
   standalone: true,
   selector: 'app-home',
-  imports: [CommonModule, RouterLink,  HeaderComponent],
+  imports: [CommonModule, RouterLink, HeaderComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
@@ -21,8 +21,7 @@ export class HomeComponent {
 
   private destroy$ = new Subject<void>();
 
-  constructor(private auth: AuthService,
-    private mybService: MyBService) {}
+  constructor(private auth: AuthService, private mybService: MyBService) {}
 
   whoAmI(): void {
     this.auth.me().pipe(

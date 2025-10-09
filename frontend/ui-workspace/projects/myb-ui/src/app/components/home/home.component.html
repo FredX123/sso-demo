@@ -4,16 +4,23 @@
   [crossAppUrl]="env.crossAppUrl"
   [crossAppLabel]="'Go to SADA'"
   (logout)="onLogout()">
-  <span left><a routerLink="/dashboard">Dashboard</a></span>
+  <li class="nav-item" left><a class="nav-link" routerLink="/dashboard">Dashboard</a></li>
 </mcl-header>
 
-<div class="p-4">
-  <h1>MyB App</h1>
-  <p>SSO via API Gateway (Okta behind the scenes).</p>
+<div class="container">
+  <div class="d-flex gap-2 mb-3">
+    <button class="btn btn-outline-secondary" (click)="whoAmI()">GET /api/auth/me</button>
+    <button class="btn btn-primary" (click)="callMyB()">GET /api/myb/hello</button>
+  </div>
 
-  <button (click)="whoAmI()">Call /api/auth/me</button>
-  <pre *ngIf="me">{{ me | json }}</pre>
-
-  <button (click)="callMyB()">Call /api/myb/hello</button>
-  <pre *ngIf="data">{{ data | json }}</pre>
+  <div class="row">
+    <div class="col-md-6">
+      <h6>Me</h6>
+      <pre class="bg-light p-2 rounded" *ngIf="me">{{ me | json }}</pre>
+    </div>
+    <div class="col-md-6">
+      <h6>MYB Response</h6>
+      <pre class="bg-light p-2 rounded" *ngIf="data">{{ data | json }}</pre>
+    </div>
+  </div>
 </div>
