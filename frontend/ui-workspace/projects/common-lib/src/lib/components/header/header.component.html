@@ -1,23 +1,54 @@
-  <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom mb-3">
-    <div class="container-fluid">
-      <a class="navbar-brand" routerLink="/">{{ appTitle }}</a>
+<nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom mb-3 mcl-header">
+  <div class="container-fluid">
+    <a class="navbar-brand" routerLink="/">{{ appTitle }}</a>
 
-      <div class="collapse navbar-collapse">
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <ng-content select="[left]"></ng-content>
-        </ul>
+    <button
+      class="navbar-toggler"
+      type="button"
+      (click)="toggleMenu()"
+      [attr.aria-expanded]="menuOpen"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
-        <div class="d-flex align-items-center gap-2">
-          <span class="text-secondary" *ngIf="isLoggedIn && username">Hi, {{ username }}</span>
+    <div class="navbar-collapse" [class.collapse]="true" [class.show]="menuOpen">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0" (click)="onNavAction()">
+        <ng-content select="[left]"></ng-content>
+      </ul>
 
-          <a *ngIf="!isLoggedIn" class="btn btn-outline-primary btn-sm" [href]="loginUrl">Login</a>
+      <div class="header-actions">
+        <span class="text-secondary header-actions__greeting" *ngIf="isLoggedIn && username">
+          Hi, {{ username }}
+        </span>
 
-          <button *ngIf="isLoggedIn" class="btn btn-outline-danger btn-sm" type="button" (click)="logout.emit()">
-            Logout
-          </button>
+        <a
+          *ngIf="!isLoggedIn"
+          class="btn btn-outline-primary btn-sm"
+          [href]="loginUrl"
+          (click)="onNavAction()"
+        >
+          Login
+        </a>
 
-          <a class="btn btn-link btn-sm" [href]="crossAppUrl">{{ crossAppLabel }}</a>
-        </div>
+        <button
+          *ngIf="isLoggedIn"
+          class="btn btn-outline-danger btn-sm"
+          type="button"
+          (click)="onLogoutClick()"
+        >
+          Logout
+        </button>
+
+        <a
+          *ngIf="crossAppUrl"
+          class="btn btn-link btn-sm header-actions__cross-app"
+          [href]="crossAppUrl"
+          (click)="onNavAction()"
+        >
+          {{ crossAppLabel }}
+        </a>
       </div>
     </div>
-  </nav>
+  </div>
+</nav>

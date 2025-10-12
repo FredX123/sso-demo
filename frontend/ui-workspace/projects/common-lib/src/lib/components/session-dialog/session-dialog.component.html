@@ -1,33 +1,37 @@
-<div *ngIf="visible">
-  <div class="modal fade show" tabindex="-1" style="display: block" role="dialog" aria-modal="true">
-    <div class="modal-dialog">
-      <div class="modal-content shadow">
-        <div class="modal-header">
-          <h5 class="modal-title">Session Expiring</h5>
-          <button
-            type="button"
-            class="btn-close"
-            aria-label="Close"
-            (click)="onContinue()"
-          ></button>
-        </div>
-        <div class="modal-body">
-          <p>
-            Your session will expire in
-            <strong>{{ secondsLeft }}</strong> seconds.
-          </p>
-          <p>Do you want to stay signed in?</p>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-outline-secondary" (click)="onExit()">
-            Exit
-          </button>
-          <button class="btn btn-primary" (click)="onContinue()">
-            Continue
-          </button>
-        </div>
-      </div>
-    </div>
+<ng-container *ngIf="visible">
+  <div class="session-dialog__backdrop" aria-hidden="true"></div>
+
+  <div
+    class="session-dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="session-dialog-title"
+    aria-describedby="session-dialog-description"
+  >
+    <header class="session-dialog__header">
+      <h2 id="session-dialog-title">Session expiring soon</h2>
+      <button
+        type="button"
+        class="session-dialog__close"
+        aria-label="Stay signed in"
+        (click)="onContinue()"
+      >
+        &times;
+      </button>
+    </header>
+
+    <section class="session-dialog__body" id="session-dialog-description">
+      <p>Your session will expire in <strong>{{ secondsLeft }}</strong> seconds.</p>
+      <p class="session-dialog__hint">Choose Stay Signed In to keep working or Sign Out to end your session.</p>
+    </section>
+
+    <footer class="session-dialog__footer">
+      <button type="button" class="session-dialog__btn session-dialog__btn--ghost" (click)="onExit()">
+        Sign Out
+      </button>
+      <button type="button" class="session-dialog__btn session-dialog__btn--primary" (click)="onContinue()">
+        Stay Signed In
+      </button>
+    </footer>
   </div>
-  <div class="modal-backdrop fade show"></div>
-</div>
+</ng-container>

@@ -1,0 +1,47 @@
+:host {
+  display: block;
+}
+
+.mcl-header .navbar-toggler {
+  border: none;
+}
+
+.mcl-header .navbar-toggler:focus {
+  box-shadow: none;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header-actions__greeting {
+  font-size: 0.9rem;
+}
+
+.header-actions__cross-app {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+@media (max-width: 991.98px) {
+  .header-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    padding-top: 0.75rem;
+  }
+
+  .header-actions > * {
+    width: 100%;
+  }
+
+  .header-actions__greeting {
+    text-align: center;
+  }
+
+  .header-actions .btn {
+    justify-content: center;
+  }
+}

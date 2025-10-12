@@ -7,7 +7,8 @@ import { SessionTimerService } from '../../services/session-timer.service';
   standalone: true,
   selector: 'mcl-session-dialog',
   imports: [NgIf],
-  templateUrl: './session-dialog.component.html'
+  templateUrl: './session-dialog.component.html',
+  styleUrls: ['./session-dialog.component.css']
 })
 export class SessionDialogComponent implements OnInit, OnDestroy {
 

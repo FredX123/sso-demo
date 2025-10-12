@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthStateService } from '../../services/auth-state.service';
@@ -9,6 +9,7 @@ import { AuthStateService } from '../../services/auth-state.service';
   selector: 'mcl-header',
   imports: [CommonModule, RouterLink],
   templateUrl: 'header.component.html',
+  styleUrls: ['header.component.css'],
 })
 export class HeaderComponent implements OnInit, OnDestroy {
   @Input() appTitle = 'App';
@@ -20,6 +21,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   isLoggedIn = false;
   username = '';
+  menuOpen = false;
+
+  private readonly desktopBreakpoint = 992;
   private sub?: Subscription;
 
   constructor(private authState: AuthStateService) {}
@@ -35,5 +39,38 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
       this.sub?.unsubscribe();
+  }
+
+  toggleMenu(): void {
+    if (this.isDesktopViewport()) {
+      return;
+    }
+    this.menuOpen = !this.menuOpen;
+  }
+
+  onLogoutClick(): void {
+    this.closeMenuForMobile();
+    this.logout.emit();
+  }
+
+  onNavAction(): void {
+    this.closeMenuForMobile();
+  }
+
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    if (this.isDesktopViewport() && this.menuOpen) {
+      this.menuOpen = false;
+    }
+  }
+
+  private closeMenuForMobile(): void {
+    if (!this.isDesktopViewport()) {
+      this.menuOpen = false;
+    }
+  }
+
+  private isDesktopViewport(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth >= this.desktopBreakpoint;
   }
 }
