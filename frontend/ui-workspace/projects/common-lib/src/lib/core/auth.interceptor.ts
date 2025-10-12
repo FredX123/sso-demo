@@ -3,6 +3,7 @@ import { inject } from '@angular/core';
 import { GATEWAY_BASE_URL } from './tokens';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { AuthService, DialogService } from 'common-lib';
+import { HDR_SILENT_AUTH } from './constants';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const http = inject(HttpClient);
@@ -19,6 +20,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   ];
 
   const isExcluded = EXCLUDED_PREFIXES.some(u => req.url.startsWith(u));
+  const isSilent   = req.headers.has(HDR_SILENT_AUTH);
 
   // Always send cookies (gateway session)
   const withCreds = req.clone({ withCredentials: true });
@@ -31,6 +33,11 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(withCreds).pipe(
     catchError((err: HttpErrorResponse) => {
+      // If this request opted into silent behavior, do NOT try refresh and do NOT show dialog.
+      if (isSilent) {
+        return throwError(() => err);
+      }
+
       // Only handle 401 once, and never for excluded targets
       if (err.status === 401 && !triedRefresh) {
         triedRefresh = true;

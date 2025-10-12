@@ -4,6 +4,7 @@ import { catchError, map, Observable, of, tap } from 'rxjs';
 import { API_AUTH_BASE_URL, GATEWAY_BASE_URL } from '../core/tokens';
 import { AuthMe } from '../model/auth.models';
 import { AuthStateService } from './auth-state.service';
+import { HDR_SILENT_AUTH } from '../core/constants';
 
 @Injectable({
   providedIn: 'root'
@@ -16,8 +17,10 @@ export class AuthService {
   private readonly authState = inject(AuthStateService);
 
   /** Pull latest auth state from server and update shared state */
-  me() {
-    return this.http.get<AuthMe>(`${this.authBase}/me`, { withCredentials: true })
+  /** set {silent:true} to avoid refresh/dialog on 401 */
+  me(opts?: { silent?: boolean }) {
+    const headers = opts?.silent ? { [HDR_SILENT_AUTH]: 'true' } : undefined;
+    return this.http.get<AuthMe>(`${this.authBase}/me`, { withCredentials: true, headers })
       .pipe(
         tap(me => this.authState.update(me)),
         map(me => me),

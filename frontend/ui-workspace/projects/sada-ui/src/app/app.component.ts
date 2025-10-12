@@ -29,7 +29,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     // prime auth state and start the session watcher
-    this.sub = this.auth.me().subscribe(() => {
+    this.sub = this.auth.me({ silent: true }).subscribe(() => {
       this.timer.startWatching();
     });
   }
