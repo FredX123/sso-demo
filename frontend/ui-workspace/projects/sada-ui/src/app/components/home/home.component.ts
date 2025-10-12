@@ -41,8 +41,8 @@ export class HomeComponent {
 
   onLogout() {
     this.auth.logout().subscribe({
-      next: () => window.location.href = this.env.loginUrl, // or navigate to your app root
-      error: () => window.location.href = this.env.loginUrl
+      next: () => window.location.href = this.env.appUrl, // or navigate to your app root
+      error: () => window.location.href = this.env.appUrl
     });
   }
 }

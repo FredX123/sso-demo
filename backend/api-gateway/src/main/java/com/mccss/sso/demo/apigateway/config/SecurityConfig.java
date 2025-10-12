@@ -22,6 +22,7 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import org.springframework.web.server.WebFilter;
 
 import java.net.URI;
+import java.time.Duration;
 import java.util.List;
 
 import static org.springframework.security.config.Customizer.withDefaults;
@@ -91,7 +92,7 @@ public class SecurityConfig {
 
         var provider = ReactiveOAuth2AuthorizedClientProviderBuilder.builder()
                 .authorizationCode()
-                .refreshToken()  // <- enables refresh on expiry; supports rotation transparently
+                .refreshToken(builder -> builder.clockSkew(Duration.ofMinutes(4))) // refresh when <=4 min remain
                 .build();
 
         var manager =
