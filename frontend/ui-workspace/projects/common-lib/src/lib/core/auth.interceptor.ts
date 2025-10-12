@@ -35,6 +35,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       if (err.status === 401 && !triedRefresh) {
         triedRefresh = true;
 
+        console.log('refresh token - auth interceptor');
+        
         // Try a single silent refresh
         return auth.refresh().pipe(
           // refresh succeeded → pull /me (to update header) → retry original request
