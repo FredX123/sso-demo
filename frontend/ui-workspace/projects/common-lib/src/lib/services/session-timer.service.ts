@@ -3,7 +3,6 @@ import { AuthService } from './auth.service';
 import { AuthStateService } from './auth-state.service';
 import { BehaviorSubject, Subject, Subscription, fromEvent, interval, merge, of, timer } from 'rxjs';
 import { catchError, filter, map, switchMap, takeUntil, tap, throttleTime } from 'rxjs/operators';
-import { APP_URL } from '../core/tokens';
 import { AuthMe } from '../model/auth.models';
 
 export interface SessionDialogState {
@@ -15,7 +14,6 @@ export interface SessionDialogState {
 export class SessionTimerService implements OnDestroy {
   private readonly authState = inject(AuthStateService);
   private readonly auth = inject(AuthService);
-  private readonly appUrl = inject(APP_URL);
 
   readonly dialog$ = new BehaviorSubject<SessionDialogState>({ visible: false, secondsLeft: 60 });
 
@@ -56,13 +54,7 @@ export class SessionTimerService implements OnDestroy {
 
   /** User clicked "Exit" */
   exit() {
-    this.auth
-      .logout()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => (window.location.href = this.appUrl),
-        error: () => (window.location.href = this.appUrl),
-      });
+    this.auth.logout();
   }
 
   hideDialog() {

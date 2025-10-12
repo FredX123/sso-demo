@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { catchError, map, Observable, of, tap } from 'rxjs';
+import { catchError, map, of, tap } from 'rxjs';
 import { API_AUTH_BASE_URL, GATEWAY_BASE_URL } from '../core/tokens';
 import { AuthMe } from '../model/auth.models';
 import { AuthStateService } from './auth-state.service';
@@ -20,7 +20,11 @@ export class AuthService {
   /** set {silent:true} to avoid refresh/dialog on 401 */
   me(opts?: { silent?: boolean }) {
     const headers = opts?.silent ? { [HDR_SILENT_AUTH]: 'true' } : undefined;
-    return this.http.get<AuthMe>(`${this.authBase}/me`, { withCredentials: true, headers })
+    const baseUrl = `${this.authBase}/me`;
+    const separator = baseUrl.includes('?') ? '&' : '?';
+    const url = `${baseUrl}${separator}_=${Date.now()}`;
+
+    return this.http.get<AuthMe>(url, { withCredentials: true, headers })
       .pipe(
         tap(me => this.authState.update(me)),
         map(me => me),
@@ -34,11 +38,22 @@ export class AuthService {
     return this.http.get(`${this.gatewayBase}/api/token/refresh`, { withCredentials: true });
   }
 
-  logout() {
-    // Spring Security default logout at the gateway; Okta RP-logout is handled server-side.
-    return this.http.post(`${this.gatewayBase}/logout`, {}, { withCredentials: true, observe: 'response' })
-    .pipe(
-      tap(() => this.authState.clear())
-    );
+  logout(): void {
+    this.authState.clear();
+
+    const target = `${this.gatewayBase}/logout`;
+
+    if (typeof window !== 'undefined' && window.document?.body) {
+      const form = window.document.createElement('form');
+      form.method = 'POST';
+      form.action = target;
+      form.style.display = 'none';
+
+      window.document.body.appendChild(form);
+      form.submit();
+      return;
+    }
+
+    throw new Error('logout() requires a browser environment to redirect.');
   }
 }
