@@ -17,4 +17,12 @@ export class SadaService {
   callSada(): Observable<any> {
     return this.http.get(`${this.env.apiBaseUrl}/hello`, { withCredentials: true });
   }
+
+  callMybViaBackend(): Observable<any> {
+    return this.http.get(`${this.env.apiBaseUrl}/hello-from-myb`, { withCredentials: true });
+  }
+
+  callMybViaBackendNoToken(): Observable<any> {
+    return this.http.get(`${this.env.apiBaseUrl}/hello-from-myb-no-token`, { withCredentials: true });
+  }
 }

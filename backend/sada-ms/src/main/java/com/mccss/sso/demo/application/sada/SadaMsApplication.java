@@ -2,8 +2,13 @@ package com.mccss.sso.demo.application.sada;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
+@ComponentScan(basePackages = {
+        "com.mccss.sso.demo.application.sada",
+        "com.mccss.sso.demo.commonlib"           // shared library "common-lib"
+})
 public class SadaMsApplication {
 
     public static void main(String[] args) {

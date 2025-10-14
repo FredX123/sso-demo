@@ -19,3 +19,8 @@ eureka:
   instance:
     prefer-ip-address: true
     hostname: localhost
+
+url:
+  myb:
+    api:
+      hello: http://localhost:6011/api/myb/hello

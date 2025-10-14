@@ -39,6 +39,24 @@ export class HomeComponent {
     });
   }
 
+  callSadaViaBackend(): void {
+    this.mybService.callSadaViaBackend().pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(resp => {
+      this.data = resp;
+    });
+  }
+
+  callSadaViaBackendNoToken(): void {
+    this.mybService.callSadaViaBackendNoToken().pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: resp => this.data = resp,
+      error: err => this.data = err.error ? err.error : err,
+      complete: () => console.log('API call completed')
+    });
+  }
+
   onLogout() {
     this.auth.logout();
   }

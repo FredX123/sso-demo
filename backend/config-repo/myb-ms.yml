@@ -19,3 +19,8 @@ eureka:
   instance:
     prefer-ip-address: true
     hostname: localhost
+
+url:
+  sada:
+    api:
+      hello: http://localhost:6021/api/sada/hello
