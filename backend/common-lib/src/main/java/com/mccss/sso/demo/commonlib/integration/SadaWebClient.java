@@ -15,8 +15,8 @@ import reactor.core.publisher.Mono;
 @Slf4j
 @Service
 public class SadaWebClient {
-    @Value("${url.sada.api.hello:}")
-    private String sadaHelloApi;
+    @Value("${url.sada.api.whoami:}")
+    private String sadaWhoAmIApi;
 
     private final SecurityUtil securityUtil;
     private final WebClient.Builder sadaWebClientBuilder;
@@ -27,10 +27,10 @@ public class SadaWebClient {
         this.securityUtil = securityUtil;
     }
 
-    public SadaAppDto heloFromSada() {
+    public SadaAppDto whoamiFromSada() {
         return sadaWebClientBuilder.build()
                 .get()
-                .uri(sadaHelloApi)
+                .uri(sadaWhoAmIApi)
                 .header(HttpHeaders.AUTHORIZATION, securityUtil.getAuthHeader())
                 .retrieve()
                 .onStatus(status -> status.value() == 401,
@@ -40,10 +40,10 @@ public class SadaWebClient {
                 .block();
     }
 
-    public SadaAppDto helloFromSadaNoToken() {
+    public SadaAppDto callSadaNoToken() {
         return sadaWebClientBuilder.build()
                 .get()
-                .uri(sadaHelloApi)
+                .uri(sadaWhoAmIApi)
                 .retrieve()
                 .bodyToMono(SadaAppDto.class)
                 .block();

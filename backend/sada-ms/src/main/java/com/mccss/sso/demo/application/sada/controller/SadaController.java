@@ -18,20 +18,22 @@ public class SadaController {
 
     private final SadaService service;
 
-    @GetMapping("/hello")
+    @GetMapping("/whoami")
     public ResponseEntity<SadaAppDto> hello(@AuthenticationPrincipal Jwt jwt) {
         String user = jwt != null ? jwt.getSubject() : null;
-        return ResponseEntity.ok(service.hello(user));
+        String accessToken = jwt != null ? jwt.getTokenValue() : null;
+
+        return ResponseEntity.ok(service.whoami(user, accessToken));
     }
 
-    @GetMapping("/hello-from-myb")
-    public ResponseEntity<MybAppDto> helloFromMyb() {
-        return ResponseEntity.ok(service.helloFromMyb());
+    @GetMapping("/whoami-from-myb")
+    public ResponseEntity<MybAppDto> whoamiFromMyb() {
+        return ResponseEntity.ok(service.whoamiFromMyb());
     }
 
-    @GetMapping("/hello-from-myb-no-token")
-    public ResponseEntity<MybAppDto> helloFromMybNoToken() {
-        return ResponseEntity.ok(service.helloFromMybNoToken());
+    @GetMapping("/whoami-from-myb-no-token")
+    public ResponseEntity<MybAppDto> whoamiFromMybNoToken() {
+        return ResponseEntity.ok(service.whoamiFromMybNoToken());
     }
 }
 

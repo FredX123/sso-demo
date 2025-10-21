@@ -16,8 +16,8 @@ import reactor.core.publisher.Mono;
 @Service
 public class MybWebClient {
 
-    @Value("${url.myb.api.hello:}")
-    private String mybHelloApi;
+    @Value("${url.myb.api.whoami:}")
+    private String mybWhoAmIApi;
 
     private final SecurityUtil securityUtil;
     private final WebClient.Builder mybWebClientBuilder;
@@ -28,20 +28,20 @@ public class MybWebClient {
         this.securityUtil = securityUtil;
     }
 
-    public MybAppDto heloFromMyb() {
+    public MybAppDto whoamiFromMyb() {
         return mybWebClientBuilder.build()
                 .get()
-                .uri(mybHelloApi)
+                .uri(mybWhoAmIApi)
                 .header(HttpHeaders.AUTHORIZATION, securityUtil.getAuthHeader())
                 .retrieve()
                 .bodyToMono(MybAppDto.class)
                 .block();
     }
 
-    public MybAppDto heloFromMybNoToken() {
+    public MybAppDto callMybNoToken() {
         return mybWebClientBuilder.build()
                 .get()
-                .uri(mybHelloApi)
+                .uri(mybWhoAmIApi)
                 .retrieve()
                 .onStatus(status -> status.value() == 401,
                         r -> Mono.error(new ApplicationException(

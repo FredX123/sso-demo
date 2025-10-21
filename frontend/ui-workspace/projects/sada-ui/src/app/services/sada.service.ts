@@ -15,14 +15,14 @@ export class SadaService {
   constructor(private http: HttpClient) { }
 
   callSada(): Observable<any> {
-    return this.http.get(`${this.env.apiBaseUrl}/hello`, { withCredentials: true });
+    return this.http.get(`${this.env.apiBaseUrl}/whoami`, { withCredentials: true });
   }
 
   callMybViaBackend(): Observable<any> {
-    return this.http.get(`${this.env.apiBaseUrl}/hello-from-myb`, { withCredentials: true });
+    return this.http.get(`${this.env.apiBaseUrl}/whoami-from-myb`, { withCredentials: true });
   }
 
   callMybViaBackendNoToken(): Observable<any> {
-    return this.http.get(`${this.env.apiBaseUrl}/hello-from-myb-no-token`, { withCredentials: true });
+    return this.http.get(`${this.env.apiBaseUrl}/whoami-from-myb-no-token`, { withCredentials: true });
   }
 }

@@ -15,14 +15,14 @@ export class MyBService {
   constructor(private http: HttpClient) { }
 
   callMyb(): Observable<any> {
-    return this.http.get(`${this.env.apiBaseUrl}/hello`, { withCredentials: true });
+    return this.http.get(`${this.env.apiBaseUrl}/whoami`, { withCredentials: true });
   }
 
   callSadaViaBackend(): Observable<any> {
-    return this.http.get(`${this.env.apiBaseUrl}/hello-from-sada`, { withCredentials: true });
+    return this.http.get(`${this.env.apiBaseUrl}/whoami-from-sada`, { withCredentials: true });
   }
 
   callSadaViaBackendNoToken(): Observable<any> {
-    return this.http.get(`${this.env.apiBaseUrl}/hello-from-sada-no-token`, { withCredentials: true });
+    return this.http.get(`${this.env.apiBaseUrl}/whoami-from-sada-no-token`, { withCredentials: true });
   }
 }

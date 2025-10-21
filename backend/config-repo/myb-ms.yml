@@ -23,4 +23,4 @@ eureka:
 url:
   sada:
     api:
-      hello: http://localhost:6021/api/sada/hello
+      whoami: http://localhost:6021/api/sada/whoami

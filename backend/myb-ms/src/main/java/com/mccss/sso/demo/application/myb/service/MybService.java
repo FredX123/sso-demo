@@ -14,19 +14,20 @@ public class MybService {
 
     private final SadaWebClient sadaWebClient;
 
-    public MybAppDto hello(String user) {
+    public MybAppDto whoami(String user, String accessToken) {
         return MybAppDto.builder()
                 .service("myb-ms")
                 .message("Hello from MyB")
                 .user(user)
+                .accessToken(accessToken)
                 .build();
     }
 
-    public SadaAppDto helloFromMyb() {
-        return sadaWebClient.heloFromSada();
+    public SadaAppDto whoamiFromSada() {
+        return sadaWebClient.whoamiFromSada();
     }
 
     public SadaAppDto helloFromMybNoToken() {
-        return sadaWebClient.helloFromSadaNoToken();
+        return sadaWebClient.callSadaNoToken();
     }
 }

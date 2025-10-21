@@ -23,4 +23,4 @@ eureka:
 url:
   myb:
     api:
-      hello: http://localhost:6011/api/myb/hello
+      whoami: http://localhost:6011/api/myb/whoami

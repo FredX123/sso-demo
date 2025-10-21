@@ -18,18 +18,19 @@ public class MybController {
 
     private final MybService service;
 
-    @GetMapping("/hello")
+    @GetMapping("/whoami")
     public ResponseEntity<MybAppDto> hello(@AuthenticationPrincipal Jwt jwt) {
         String user = jwt != null ? jwt.getSubject() : null;
-        return ResponseEntity.ok(service.hello(user));
+        String accessToken = jwt != null ? jwt.getTokenValue() : null;
+        return ResponseEntity.ok(service.whoami(user, accessToken));
     }
 
-    @GetMapping("/hello-from-sada")
-    public ResponseEntity<SadaAppDto> helloFromMyb() {
-        return ResponseEntity.ok(service.helloFromMyb());
+    @GetMapping("/whoami-from-sada")
+    public ResponseEntity<SadaAppDto> whoamiFromSada() {
+        return ResponseEntity.ok(service.whoamiFromSada());
     }
 
-    @GetMapping("/hello-from-sada-no-token")
+    @GetMapping("/whoami-from-sada-no-token")
     public ResponseEntity<SadaAppDto> helloFromMybNoToken() {
         return ResponseEntity.ok(service.helloFromMybNoToken());
     }
