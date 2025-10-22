@@ -16,8 +16,8 @@ backend/
 ├─ api-gateway/            # Spring Cloud Gateway (WebFlux)
 ├─ permission-ms/          # Example microservice
 ├─ auth-ms/                # Example microservice
-├─ myb-ms/          # Example microservice
-├─ sada-ms/                # Example microservice
+├─ frontoffice-ms/         # Example microservice
+├─ backoffice-ms/          # Example microservice
 └─ common-lib/             # Shared DTOs, utils, mappers
 ```
 
@@ -63,7 +63,7 @@ The system should be started in the following sequence:
    ```  
    Runs on port **6001**. Forwards requests to downstream services.
 
-4. **Microservices (permission-ms, auth-ms, myb-ms, sada-ms, etc.)**  
+4. **Microservices (permission-ms, auth-ms, frontoffice-ms, backoffice-ms, etc.)**  
    Start each service. They register with Eureka and fetch configuration from Config Server.  
    ```bash
    cd permission-ms
@@ -81,8 +81,8 @@ The system should be started in the following sequence:
 - Filenames must match the Spring application name (`spring.application.name`).  
   - `permission-ms.yml` → for permission service
   - `auth-ms.yml` → for auth service
-  - `myb-ms.yml` → for MyB Service  
-  - `sada-ms.yml` → for SADA Service
+  - `frontoffice-ms.yml` → for BackeOffice Service  
+  - `backoffice-ms.yml` → for FrontOffice Service
 - Global defaults go into `application.yml`.
 
 ## Verify Setup

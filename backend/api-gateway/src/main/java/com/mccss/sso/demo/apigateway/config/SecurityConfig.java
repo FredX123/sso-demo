@@ -32,11 +32,11 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @EnableWebFluxSecurity
 public class SecurityConfig {
 
-    @Value("${client.redirect-url.myb-app:}")
-    private String mybAppUrl;
+    @Value("${client.redirect-url.frontoffice-app:}")
+    private String foAppUrl;
 
-    @Value("${client.redirect-url.sada-app:}")
-    private String sadaAppUrl;
+    @Value("${client.redirect-url.backoffice-app:}")
+    private String boAppUrl;
 
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(
@@ -59,7 +59,7 @@ public class SecurityConfig {
                                     }
                                     // Pages: fall back to default redirect-to-login (handled by oauth2Login())
                                     return new org.springframework.security.web.server.authentication.RedirectServerAuthenticationEntryPoint(
-                                            "/oauth2/authorization/myb-app"  // a sane default; see note below for per-app
+                                            "/oauth2/authorization/frontoffice-app"  // a sane default; see note below for per-app
                                     ).commence(exchange, exAuth);
                                 })
                                 .accessDeniedHandler((exchange, exDenied) -> {
@@ -103,7 +103,7 @@ public class SecurityConfig {
     }
 
     /**
-     * For links like /oauth2/authorization/myb-app?redirectTo=/dashboard
+     * For links like /oauth2/authorization/frontoffice-app?redirectTo=/dashboard
      */
     @Bean
     public WebFilter captureRedirectTo() {
@@ -165,11 +165,11 @@ public class SecurityConfig {
 
     private String getClientRedirectUrl(OAuth2AuthenticationToken authentication) {
         String client = (authentication != null) ? authentication.getAuthorizedClientRegistrationId() : null;
-        if ("sada-app".equals(client)) {
-            return sadaAppUrl;
+        if ("backoffice-app".equals(client)) {
+            return boAppUrl;
         }
 
-        return mybAppUrl;
+        return foAppUrl;
     }
 
     @Bean

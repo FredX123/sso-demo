@@ -9,14 +9,14 @@ import org.springframework.web.reactive.function.client.WebClient;
 public class WebClientConfig {
 
     @Bean
-    @Qualifier("mybWebClientBuilder")
-    public WebClient.Builder mybWebClientBuilder() {
+    @Qualifier("foWebClientBuilder")
+    public WebClient.Builder foWebClientBuilder() {
         return WebClient.builder();
     }
 
     @Bean
-    @Qualifier("sadaWebClientBuilder")
-    public WebClient.Builder sadaWebClientBuilder() {
+    @Qualifier("boWebClientBuilder")
+    public WebClient.Builder boWebClientBuilder() {
         return WebClient.builder();
     }
 }

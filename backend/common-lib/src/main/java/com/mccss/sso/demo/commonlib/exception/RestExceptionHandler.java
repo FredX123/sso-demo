@@ -19,7 +19,7 @@ import java.time.Instant;
 public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(ApplicationException.class)
-    public ResponseEntity<?> handleMybApplicationException(ApplicationException ex) {
+    public ResponseEntity<?> handleFoApplicationException(ApplicationException ex) {
         log.error("ApplicationException: ", ex);
 
         return ResponseEntity

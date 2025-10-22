@@ -30,17 +30,17 @@ spring:
               filters:
                 - TokenRelay
 
-            - id: myb
-              uri: lb://myb-ms
+            - id: frontoffice
+              uri: lb://frontoffice-ms
               predicates:
-                - Path=/api/myb/**
+                - Path=/api/frontoffice/**
               filters:
                 - TokenRelay
 
-            - id: sada
-              uri: lb://sada-ms
+            - id: backoffice
+              uri: lb://backoffice-ms
               predicates:
-                - Path=/api/sada/**
+                - Path=/api/backoffice/**
               filters:
                 - TokenRelay
 
@@ -48,20 +48,20 @@ spring:
     oauth2:
       client:
         registration:
-          myb-app:
+          frontoffice-app:
             provider: okta
             client-id: 0oaqp2kj9zEIU0LTy5d7
             client-secret: J21HhBvkKwJeoA2Rdb7SExC4YbRyS2fTUo3n0XLCx9yeaWKjDj_NcgpB5AgCDL4C
             scope: openid, profile, email, offline_access
             authorization-grant-type: authorization_code
-            redirect-uri: "{baseUrl}/login/oauth2/code/myb-app"
-          sada-app:
+            redirect-uri: "{baseUrl}/login/oauth2/code/frontoffice-app"
+          backoffice-app:
             provider: okta
             client-id: 0oaqp2q4zy9xzTqE95d7
             client-secret: eSNA20W20TgxcVLAXajyvGjei7cB7S48phxmy_RIUSCh4qZNcO2UfaoXUhPqgYiS
             scope: openid, profile, email, offline_access
             authorization-grant-type: authorization_code
-            redirect-uri: "{baseUrl}/login/oauth2/code/sada-app"
+            redirect-uri: "{baseUrl}/login/oauth2/code/backoffice-app"
         provider:
           okta:
             issuer-uri: https://dev-50623690.okta.com/oauth2/default
@@ -77,9 +77,9 @@ eureka:
 
 client:
   redirect-url:
-    myb-app: http://localhost:4200
-    sada-app: http://localhost:4201
+    frontoffice-app: http://localhost:4200
+    backoffice-app: http://localhost:4201
 
 app:
   oauth2:
-    client-ids: myb-app,sada-app
+    client-ids: frontoffice-app,backoffice-app

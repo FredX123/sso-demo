@@ -32,7 +32,7 @@ public class TokenController {
     public TokenController(
             TokenService tokenService,
             ServerOAuth2AuthorizedClientRepository authorizedClientRepo,
-            @Value("#{'${app.oauth2.client-ids:myb-app,sada-app}'.split(',')}") List<String> knownClientIds) {
+            @Value("#{'${app.oauth2.client-ids:frontoffice-app,backoffice-app}'.split(',')}") List<String> knownClientIds) {
         this.tokenService = tokenService;
         this.authorizedClientRepo = authorizedClientRepo;
         // trim spaces just in case
