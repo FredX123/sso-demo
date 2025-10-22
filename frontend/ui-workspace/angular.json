@@ -3,37 +3,37 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "myb-ui": {
+    "frontoffice-ui": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
           "style": "scss"
         }
       },
-      "root": "projects/myb-ui",
-      "sourceRoot": "projects/myb-ui/src",
+      "root": "projects/frontoffice-ui",
+      "sourceRoot": "projects/frontoffice-ui/src",
       "prefix": "app",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/myb-ui",
-            "index": "projects/myb-ui/src/index.html",
-            "browser": "projects/myb-ui/src/main.ts",
+            "outputPath": "dist/frontoffice-ui",
+            "index": "projects/frontoffice-ui/src/index.html",
+            "browser": "projects/frontoffice-ui/src/main.ts",
             "polyfills": [
               "zone.js"
             ],
-            "tsConfig": "projects/myb-ui/tsconfig.app.json",
+            "tsConfig": "projects/frontoffice-ui/tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
               {
                 "glob": "**/*",
-                "input": "projects/myb-ui/public"
+                "input": "projects/frontoffice-ui/public"
               }
             ],
             "styles": [
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
-              "projects/myb-ui/src/styles.scss"
+              "projects/frontoffice-ui/src/styles.scss"
             ],
             "scripts": []
           },
@@ -65,10 +65,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "myb-ui:build:production"
+              "buildTarget": "frontoffice-ui:build:production"
             },
             "development": {
-              "buildTarget": "myb-ui:build:development"
+              "buildTarget": "frontoffice-ui:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -83,53 +83,53 @@
               "zone.js",
               "zone.js/testing"
             ],
-            "tsConfig": "projects/myb-ui/tsconfig.spec.json",
+            "tsConfig": "projects/frontoffice-ui/tsconfig.spec.json",
             "inlineStyleLanguage": "scss",
             "assets": [
               {
                 "glob": "**/*",
-                "input": "projects/myb-ui/public"
+                "input": "projects/frontoffice-ui/public"
               }
             ],
             "styles": [
-              "projects/myb-ui/src/styles.scss"
+              "projects/frontoffice-ui/src/styles.scss"
             ],
             "scripts": []
           }
         }
       }
     },
-    "sada-ui": {
+    "backoffice-ui": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
           "style": "scss"
         }
       },
-      "root": "projects/sada-ui",
-      "sourceRoot": "projects/sada-ui/src",
+      "root": "projects/backoffice-ui",
+      "sourceRoot": "projects/backoffice-ui/src",
       "prefix": "app",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/sada-ui",
-            "index": "projects/sada-ui/src/index.html",
-            "browser": "projects/sada-ui/src/main.ts",
+            "outputPath": "dist/backoffice-ui",
+            "index": "projects/backoffice-ui/src/index.html",
+            "browser": "projects/backoffice-ui/src/main.ts",
             "polyfills": [
               "zone.js"
             ],
-            "tsConfig": "projects/sada-ui/tsconfig.app.json",
+            "tsConfig": "projects/backoffice-ui/tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
               {
                 "glob": "**/*",
-                "input": "projects/sada-ui/public"
+                "input": "projects/backoffice-ui/public"
               }
             ],
             "styles": [
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
-              "projects/sada-ui/src/styles.scss"
+              "projects/backoffice-ui/src/styles.scss"
             ],
             "scripts": []
           },
@@ -161,10 +161,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "sada-ui:build:production"
+              "buildTarget": "backoffice-ui:build:production"
             },
             "development": {
-              "buildTarget": "sada-ui:build:development"
+              "buildTarget": "backoffice-ui:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -179,16 +179,16 @@
               "zone.js",
               "zone.js/testing"
             ],
-            "tsConfig": "projects/sada-ui/tsconfig.spec.json",
+            "tsConfig": "projects/backoffice-ui/tsconfig.spec.json",
             "inlineStyleLanguage": "scss",
             "assets": [
               {
                 "glob": "**/*",
-                "input": "projects/sada-ui/public"
+                "input": "projects/backoffice-ui/public"
               }
             ],
             "styles": [
-              "projects/sada-ui/src/styles.scss"
+              "projects/backoffice-ui/src/styles.scss"
             ],
             "scripts": []
           }

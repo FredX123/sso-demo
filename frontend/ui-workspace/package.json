@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start-myb": "ng serve myb-ui --port 4200 --proxy-config projects/myb-ui/proxy.conf.json",
-    "start-sada": "ng serve sada-ui --port 4201 --proxy-config projects/sada-ui/proxy.conf.json",
+    "start-fo": "ng serve frontoffice-ui --port 4200 --proxy-config projects/frontoffice-ui/proxy.conf.json",
+    "start-bo": "ng serve backoffice-ui --port 4201 --proxy-config projects/backoffice-ui/proxy.conf.json",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
