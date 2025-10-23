@@ -40,6 +40,7 @@
         <module>api-gateway</module>
         <module>permission-ms</module>
         <module>auth-ms</module>
+        <module>session-ms</module>
         <module>frontoffice-ms</module>
         <module>backoffice-ms</module>
     </modules>
