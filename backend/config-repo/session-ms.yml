@@ -11,6 +11,10 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: https://dev-50623690.okta.com/oauth2/default
+  redis:
+    host: localhost
+    port: 6379
+#    password: passw0rd
 
 eureka:
   client:
@@ -19,3 +23,9 @@ eureka:
   instance:
     prefer-ip-address: true
     hostname: localhost
+
+app:
+  authz:
+    cache:
+      ttl: 15m                         # TTL for cached auth data
+      hashKey: false                   # set true to SHA-256 the key (privacy)

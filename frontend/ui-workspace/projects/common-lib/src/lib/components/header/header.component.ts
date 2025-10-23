@@ -33,7 +33,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
         console.log("authenticated: ", me.authenticated);
 
         this.isLoggedIn = !!me.authenticated;
-        this.username = me.name || me.email || 'N/A';
+        this.username = me.firstName + ' ' + me.lastName || me.subject || me.email || 'N/A';
       })
   }
 

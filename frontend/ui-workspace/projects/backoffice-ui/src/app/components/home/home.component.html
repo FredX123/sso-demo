@@ -9,10 +9,10 @@
 
 <div class="container">
   <div class="d-flex gap-2 mb-3">
-    <button class="btn btn-outline-secondary" (click)="whoAmI()">GET /api/auth/me</button>
+    <button class="btn btn-outline-secondary" (click)="whoAmI()">GET /me</button>
     <button class="btn btn-primary" (click)="callBo()">whoami</button>
-    <button class="btn btn-primary" (click)="callFoViaBackend()">Backend :: whoami-from-frontoffice</button>
-    <button class="btn btn-primary" (click)="callFoViaBackendNoToken()">Backend :: whoami-from-frontoffice-no-token</button>
+    <button class="btn btn-primary" (click)="callFoViaBackend()">Backend - bo => fo</button>
+    <button class="btn btn-primary" (click)="callFoViaBackendNoToken()">Backend - bo => fo - No Token</button>
   </div>
 
   <div class="row">

@@ -6,7 +6,7 @@ import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
 @ComponentScan(basePackages = {
-        "com.mccss.sso.demo.application.fo",
+        "com.mccss.sso.demo.frontoffice",
         "com.mccss.sso.demo.commonlib"           // shared library "common-lib"
 })
 public class FrontofficeMsApplication {

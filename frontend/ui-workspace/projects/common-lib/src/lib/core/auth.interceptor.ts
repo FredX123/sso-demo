@@ -46,8 +46,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         
         // Try a single silent refresh
         return auth.refresh().pipe(
-          // refresh succeeded → pull /me (to update header) → retry original request
-          switchMap(() => auth.me()),
+          // refresh succeeded → pull /authorizations/me (to update header) → retry original request
+          switchMap(() => auth.loadAuth()),
           switchMap(() => next(withCreds)),
 
           // refresh failed (likely not logged in) → show dialog and stop

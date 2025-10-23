@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import { AuthService, HeaderComponent } from 'common-lib';
+import { AuthMe, AuthService, HeaderComponent } from 'common-lib';
 import { BackOfficeService } from '../../services/back-office.service';
 
 @Component({
@@ -17,14 +17,15 @@ import { BackOfficeService } from '../../services/back-office.service';
 export class HomeComponent {
 
   env = environment;
-  me: any; data: any;
+  me?: AuthMe;
+  data: any;
 
   private destroy$ = new Subject<void>();
 
   constructor(private auth: AuthService, private backOfficeService: BackOfficeService) {}
 
   whoAmI(): void {
-    this.auth.me().pipe(
+    this.auth.getAuthCache().pipe(
       takeUntil(this.destroy$)
     ).subscribe(resp => {
       this.me = resp;

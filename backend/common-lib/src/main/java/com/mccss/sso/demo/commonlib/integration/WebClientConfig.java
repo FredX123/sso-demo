@@ -19,4 +19,10 @@ public class WebClientConfig {
     public WebClient.Builder boWebClientBuilder() {
         return WebClient.builder();
     }
+
+    @Bean
+    @Qualifier("cacheWebClientBuilder")
+    public WebClient.Builder cacheWebClientBuilder() {
+        return WebClient.builder();
+    }
 }

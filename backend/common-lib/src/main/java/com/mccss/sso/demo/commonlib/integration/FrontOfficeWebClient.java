@@ -8,12 +8,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 @Slf4j
-@Service
+@Component
 public class FrontOfficeWebClient {
 
     @Value("${url.frontoffice.api.whoami:}")
@@ -28,25 +28,23 @@ public class FrontOfficeWebClient {
         this.securityUtil = securityUtil;
     }
 
-    public FoAppDto whoamiFromFo() {
+    public Mono<FoAppDto> whoamiFromFo() {
         return foWebClientBuilder.build()
                 .get()
                 .uri(foWhoAmIApi)
                 .header(HttpHeaders.AUTHORIZATION, securityUtil.getAuthHeader())
                 .retrieve()
-                .bodyToMono(FoAppDto.class)
-                .block();
+                .bodyToMono(FoAppDto.class);
     }
 
-    public FoAppDto callFoNoToken() {
+    public Mono<FoAppDto> callFoNoToken() {
         return foWebClientBuilder.build()
                 .get()
                 .uri(foWhoAmIApi)
                 .retrieve()
-                .onStatus(status -> status.value() == 401,
+                .onStatus(status -> status.value() == HttpStatus.UNAUTHORIZED.value(),
                         r -> Mono.error(new ApplicationException(
                                 HttpStatus.UNAUTHORIZED.value(), "Unauthorized (401) from Frontoffice API")))
-                .bodyToMono(FoAppDto.class)
-                .block();
+                .bodyToMono(FoAppDto.class);
     }
 }

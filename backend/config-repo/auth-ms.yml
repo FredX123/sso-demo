@@ -19,3 +19,20 @@ eureka:
   instance:
     prefer-ip-address: true
     hostname: localhost
+
+app:
+  authz:
+    api:
+      cache: http://localhost:6005/api/session/cache/authorizations
+    mock:
+      claims:
+        roles:
+          - ADMIN
+          - USER
+          - GUEST
+        permissions:
+          - READ
+          - WRITE
+          - DELETE
+          - CREATE
+          - UPDATE

@@ -8,13 +8,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 @Slf4j
-@Service
+@Component
 public class BackOfficeWebClient {
+
     @Value("${url.backoffice.api.whoami:}")
     private String boWhoAmIApi;
 
@@ -27,25 +28,23 @@ public class BackOfficeWebClient {
         this.securityUtil = securityUtil;
     }
 
-    public BoAppDto whoamiFromBo() {
+    public Mono<BoAppDto> whoamiFromBo() {
         return boWebClientBuilder.build()
                 .get()
                 .uri(boWhoAmIApi)
                 .header(HttpHeaders.AUTHORIZATION, securityUtil.getAuthHeader())
                 .retrieve()
-                .onStatus(status -> status.value() == 401,
+                .onStatus(status -> status.value() == HttpStatus.UNAUTHORIZED.value(),
                         r -> Mono.error(new ApplicationException(
                                 HttpStatus.UNAUTHORIZED.value(), "Unauthorized (401) from Backoffice API")))
-                .bodyToMono(BoAppDto.class)
-                .block();
+                .bodyToMono(BoAppDto.class);
     }
 
-    public BoAppDto callBoNoToken() {
+    public Mono<BoAppDto> callBoNoToken() {
         return boWebClientBuilder.build()
                 .get()
                 .uri(boWhoAmIApi)
                 .retrieve()
-                .bodyToMono(BoAppDto.class)
-                .block();
+                .bodyToMono(BoAppDto.class);
     }
 }

@@ -1,16 +1,19 @@
 package com.mccss.sso.demo.frontoffice.controller;
 
-import com.mccss.sso.demo.frontoffice.service.FrontOfficeService;
-import com.mccss.sso.demo.commonlib.dto.FoAppDto;
 import com.mccss.sso.demo.commonlib.dto.BoAppDto;
+import com.mccss.sso.demo.commonlib.dto.FoAppDto;
+import com.mccss.sso.demo.frontoffice.service.FrontOfficeService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Mono;
 
+@Slf4j
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/frontoffice")
@@ -19,19 +22,23 @@ public class FrontOfficeController {
     private final FrontOfficeService service;
 
     @GetMapping("/whoami")
-    public ResponseEntity<FoAppDto> hello(@AuthenticationPrincipal Jwt jwt) {
+    public Mono<ResponseEntity<FoAppDto>> whoami(@AuthenticationPrincipal Jwt jwt) {
+        log.info("whoami");
         String user = jwt != null ? jwt.getSubject() : null;
         String accessToken = jwt != null ? jwt.getTokenValue() : null;
-        return ResponseEntity.ok(service.whoami(user, accessToken));
+
+        return service.whoami(user, accessToken).map(ResponseEntity::ok);
     }
 
     @GetMapping("/whoami-from-bo")
-    public ResponseEntity<BoAppDto> whoamiFromBo() {
-        return ResponseEntity.ok(service.whoamiFromBo());
+    public Mono<ResponseEntity<BoAppDto>> whoamiFromBo() {
+        log.info("whoami-from-bo");
+        return service.whoamiFromBo().map(ResponseEntity::ok);
     }
 
     @GetMapping("/whoami-from-bo-no-token")
-    public ResponseEntity<BoAppDto> helloFromBoNoToken() {
-        return ResponseEntity.ok(service.helloFromBoNoToken());
+    public Mono<ResponseEntity<BoAppDto>> helloFromBoNoToken() {
+        log.info("whoami-from-bo-no-token");
+        return service.helloFromBoNoToken().map(ResponseEntity::ok);
     }
 }

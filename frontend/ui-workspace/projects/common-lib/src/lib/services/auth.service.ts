@@ -16,14 +16,28 @@ export class AuthService {
   private readonly gatewayBase = inject<string>(GATEWAY_BASE_URL);
   private readonly authState = inject(AuthStateService);
 
+  authLoadUrl = `${this.authBase}/authorizations`;
+
   /** Pull latest auth state from server and update shared state */
   /** set {silent:true} to avoid refresh/dialog on 401 */
-  me(opts?: { silent?: boolean }) {
+  loadAuth(opts?: { silent?: boolean }) {
     const headers = opts?.silent ? { [HDR_SILENT_AUTH]: 'true' } : undefined;
-    const baseUrl = `${this.authBase}/me`;
-    const separator = baseUrl.includes('?') ? '&' : '?';
-    const url = `${baseUrl}${separator}_=${Date.now()}`;
+    const separator = this.authLoadUrl.includes('?') ? '&' : '?';
+    const url = `${this.authLoadUrl}/load${separator}_=${Date.now()}`;
 
+    return this.http.get<AuthMe>(url, { withCredentials: true, headers })
+      .pipe(
+        tap(me => this.authState.update(me)),
+        map(me => me),
+        catchError(() => of({ authenticated: false } as AuthMe))
+      );
+  }
+
+  getAuthCache(opts?: { silent?: boolean }) {
+    const headers = opts?.silent ? { [HDR_SILENT_AUTH]: 'true' } : undefined;
+    const separator = this.authLoadUrl.includes('?') ? '&' : '?';
+    const url = `${this.authLoadUrl}${separator}_=${Date.now()}`;
+    
     return this.http.get<AuthMe>(url, { withCredentials: true, headers })
       .pipe(
         tap(me => this.authState.update(me)),

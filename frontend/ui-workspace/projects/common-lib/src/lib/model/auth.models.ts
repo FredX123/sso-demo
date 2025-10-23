@@ -1,11 +1,17 @@
+
+export interface UserAuthorization {
+  roles: string[];
+  permissions: string[];
+}
+
 export interface AuthMe {
   authenticated: boolean;
-  name?: string;
   subject?: string;
-  email?: string;
+  firstName?: string;
+  lastName?: string;
   issuer?: string;
   issuedAt?: string;
   expiresAt?: string;
-  roles?: string[];
-  claims?: Record<string, any>;
+  email?: string;
+  authz?: UserAuthorization;
 }

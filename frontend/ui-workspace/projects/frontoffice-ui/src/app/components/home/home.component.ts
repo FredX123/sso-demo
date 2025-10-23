@@ -24,7 +24,7 @@ export class HomeComponent {
   constructor(private auth: AuthService, private frontOfficeService: FrontOfficeService) {}
 
   whoAmI(): void {
-    this.auth.me().pipe(
+    this.auth.getAuthCache().pipe(
       takeUntil(this.destroy$)
     ).subscribe(resp => {
       this.me = resp;
