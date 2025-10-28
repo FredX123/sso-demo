@@ -1,8 +1,9 @@
-package com.mccss.sso.demo.commonlib.dto;
+package com.mccss.sso.demo.commonlib.model;
 
 import lombok.*;
 
 import java.time.Instant;
+import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,5 +21,5 @@ public class AuthMe {
     private Instant issuedAt;
     private Instant expiresAt;
 
-    private UserAuthorization authz;
+    private List<String> roles;
 }

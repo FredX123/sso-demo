@@ -1,11 +1,11 @@
 package com.mccss.sso.demo.commonlib.integration;
 
+import com.mccss.sso.demo.commonlib.config.IntegrationProps;
 import com.mccss.sso.demo.commonlib.dto.BoAppDto;
 import com.mccss.sso.demo.commonlib.exception.ApplicationException;
 import com.mccss.sso.demo.commonlib.util.SecurityUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -14,24 +14,24 @@ import reactor.core.publisher.Mono;
 
 @Slf4j
 @Component
-public class BackOfficeWebClient {
-
-    @Value("${url.backoffice.api.whoami:}")
-    private String boWhoAmIApi;
+public class BackOfficeClient {
 
     private final SecurityUtil securityUtil;
-    private final WebClient.Builder boWebClientBuilder;
+    private final WebClient.Builder boClientBuilder;
+    private final IntegrationProps integrationProps;
 
-    public BackOfficeWebClient(@Qualifier("boWebClientBuilder") WebClient.Builder boWebClientBuilder,
-                               SecurityUtil securityUtil) {
-        this.boWebClientBuilder = boWebClientBuilder;
+    public BackOfficeClient(@Qualifier("boClientBuilder") WebClient.Builder boClientBuilder,
+                            SecurityUtil securityUtil,
+                            IntegrationProps integrationProps) {
+        this.boClientBuilder = boClientBuilder;
         this.securityUtil = securityUtil;
+        this.integrationProps = integrationProps;
     }
 
     public Mono<BoAppDto> whoamiFromBo() {
-        return boWebClientBuilder.build()
+        return boClientBuilder.build()
                 .get()
-                .uri(boWhoAmIApi)
+                .uri(getBoWhoAmIApi())
                 .header(HttpHeaders.AUTHORIZATION, securityUtil.getAuthHeader())
                 .retrieve()
                 .onStatus(status -> status.value() == HttpStatus.UNAUTHORIZED.value(),
@@ -41,10 +41,14 @@ public class BackOfficeWebClient {
     }
 
     public Mono<BoAppDto> callBoNoToken() {
-        return boWebClientBuilder.build()
+        return boClientBuilder.build()
                 .get()
-                .uri(boWhoAmIApi)
+                .uri(getBoWhoAmIApi())
                 .retrieve()
                 .bodyToMono(BoAppDto.class);
+    }
+
+    private String getBoWhoAmIApi() {
+        return integrationProps.getBackofficeMs().getBaseUrl() + "/whoami";
     }
 }

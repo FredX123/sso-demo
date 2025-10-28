@@ -1,0 +1,13 @@
+server:
+  port: 6006
+
+spring:
+  application:
+    name: mock-external-ms
+
+mock:
+  users:
+    - subject: student1sso@mailinator.com
+      roles: [ADMIN, USER]
+    - subject: student2sso@mailinator.com
+      roles: [USER]

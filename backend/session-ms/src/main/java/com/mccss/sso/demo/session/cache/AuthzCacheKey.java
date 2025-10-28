@@ -13,6 +13,7 @@ import java.security.MessageDigest;
  */
 @Component
 public class AuthzCacheKey {
+
     private final boolean hash;
 
     public AuthzCacheKey(AuthzCacheProps authzCacheProps) {
@@ -26,13 +27,27 @@ public class AuthzCacheKey {
      * @param iss the issuer identifier, representing the origin of the token
      * @param sub the subject identifier, representing the user or entity for which
      *            the cache key is being generated
+     * @param app the application key for which the cache key is being generated
      * @return a string representing the generated cache key; if hashing is enabled,
      *         the SHA-256 hash of the raw key is returned, otherwise the raw key is returned
      */
-    public String forIssSub(String iss, String sub) {
-        String raw = "roles:" + iss + ":" + sub;
+    public String createCacheKey(String iss, String sub, String app) {
+        return build("roles", iss, sub, app);
+    }
+
+    private String build(String prefix, String... parts) {
+        String raw = prefix + ":" + String.join(":", sanitize(parts));
         if (!hash) return raw;
-        return "roles:" + sha256(raw);
+        return prefix + ":" + sha256(raw);
+    }
+
+    private static String[] sanitize(String... parts) {
+        String[] out = new String[parts.length];
+        for (int i = 0; i < parts.length; i++) {
+            String p = parts[i] == null ? "" : parts[i];
+            out[i] = p.replaceAll("\\s+", "_").replaceAll("[/\\\\]", ":");
+        }
+        return out;
     }
 
     /**
@@ -42,7 +57,7 @@ public class AuthzCacheKey {
      * @return the SHA-256 hash of the input string represented as a hexadecimal string
      * @throws IllegalStateException if the hashing process encounters an error
      */
-    private static String sha256(String input) {
+    private String sha256(String input) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             byte[] d = md.digest(input.getBytes(StandardCharsets.UTF_8));

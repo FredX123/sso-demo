@@ -1,4 +1,4 @@
-package com.mccss.sso.demo.commonlib.dto;
+package com.mccss.sso.demo.commonlib.model;
 
 import lombok.*;
 

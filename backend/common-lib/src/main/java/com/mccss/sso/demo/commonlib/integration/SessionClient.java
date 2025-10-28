@@ -1,11 +1,11 @@
 package com.mccss.sso.demo.commonlib.integration;
 
-import com.mccss.sso.demo.commonlib.dto.AuthMe;
+import com.mccss.sso.demo.commonlib.config.IntegrationProps;
 import com.mccss.sso.demo.commonlib.exception.ApplicationException;
+import com.mccss.sso.demo.commonlib.model.UserSession;
 import com.mccss.sso.demo.commonlib.util.SecurityUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -15,43 +15,44 @@ import reactor.core.publisher.Mono;
 
 @Slf4j
 @Component
-public class CacheWebClient {
+public class SessionClient {
 
-    @Value("${app.authz.api.cache:}")
-    private String authzCacheApi;
-
+    private final WebClient.Builder sessionClientBuilder;
     private final SecurityUtil securityUtil;
-    private final WebClient.Builder cacheWebClientBuilder;
+    private final IntegrationProps integrationProps;
 
-    public CacheWebClient(@Qualifier("cacheWebClientBuilder") WebClient.Builder cacheWebClientBuilder,
-                          SecurityUtil securityUtil) {
-        this.cacheWebClientBuilder = cacheWebClientBuilder;
+    public SessionClient(@Qualifier("sessionClientBuilder") WebClient.Builder sessionClientBuilder,
+                         SecurityUtil securityUtil,
+                         IntegrationProps integrationProps) {
+        this.sessionClientBuilder = sessionClientBuilder;
         this.securityUtil = securityUtil;
+        this.integrationProps = integrationProps;
     }
 
-    public Mono<AuthMe> cacheAuthz(AuthMe data) {
-        return cacheWebClientBuilder.build()
+    public Mono<UserSession> cacheUserSession(UserSession data) {
+        String bearerToken = securityUtil.getAuthHeader();
+        return sessionClientBuilder.build()
                 .post()
-                .uri(authzCacheApi)
-                .header(HttpHeaders.AUTHORIZATION, securityUtil.getAuthHeader())
+                .uri(integrationProps.getSessionMs().getBaseUrl() + "/cache/user-session")
+                .header(HttpHeaders.AUTHORIZATION, bearerToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(data)
                 .retrieve()
                 .onStatus(status -> status.value() == HttpStatus.UNAUTHORIZED.value(),
                         r -> Mono.error(new ApplicationException(
                                 HttpStatus.UNAUTHORIZED.value(), "Unauthorized (401) from session-ms API")))
-                .bodyToMono(AuthMe.class);
+                .bodyToMono(UserSession.class);
     }
 
-    public Mono<AuthMe> getAuthz() {
-        return cacheWebClientBuilder.build()
+    public Mono<UserSession> getUserSession() {
+        return sessionClientBuilder.build()
                 .get()
-                .uri(authzCacheApi)
+                .uri(integrationProps.getSessionMs().getBaseUrl() + "/cache/user-session")
                 .header(HttpHeaders.AUTHORIZATION, securityUtil.getAuthHeader())
                 .retrieve()
                 .onStatus(status -> status.value() == HttpStatus.UNAUTHORIZED.value(),
                         r -> Mono.error(new ApplicationException(
                                 HttpStatus.UNAUTHORIZED.value(), "Unauthorized (401) from session-ms API")))
-                .bodyToMono(AuthMe.class);
+                .bodyToMono(UserSession.class);
     }
 }

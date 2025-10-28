@@ -1,8 +1,9 @@
 package com.mccss.sso.demo.auth.controller;
 
 import com.mccss.sso.demo.auth.service.AuthzService;
-import com.mccss.sso.demo.commonlib.dto.AuthMe;
+import com.mccss.sso.demo.commonlib.model.AuthMe;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+@Slf4j
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/auth/authorizations")
@@ -24,26 +26,31 @@ public class AuthController {
     private final AuthzService authzService;
 
     /**
-     * Load the user authorization data and cache it.
+     * Loads the authentication and authorization information for the user identified by the provided JWT.
      *
-     * @return a {@code Mono} emitting a {@code ResponseEntity} containing the {@code UserAuthorization} object
-     *         with the user's roles and permissions after caching the authorization data.
+     * @param jwt the JSON Web Token containing user identity and claims
+     * @return a {@code Mono} emitting a {@code ResponseEntity} containing an {@code AuthMe} object
+     *         with the user's authentication and authorization details
      */
     @GetMapping("/load")
-    public Mono<ResponseEntity<AuthMe>> loadAndCacheAuthz(@AuthenticationPrincipal Jwt jwt) {
-        return authzService.cacheAuthz(jwt)
+    public Mono<ResponseEntity<AuthMe>> loadUserInfo(@AuthenticationPrincipal Jwt jwt) {
+        log.info("Load and cache user authentication/authorization data");
+
+        return authzService.loadUserInfo(jwt)
                 .map(ResponseEntity::ok);
     }
 
     /**
-     * Retrieves the currently authorized user's roles and permissions.
+     * Retrieves user authentication and authorization data from the cache.
      *
-     * @return a {@code Mono} emitting a {@code ResponseEntity} containing the {@code UserAuthorization} object
-     *         with the user's roles and permissions retrieved from the authorization cache.
+     * @return a {@code Mono} emitting a {@code ResponseEntity} containing an {@code AuthMe} object
+     *         with the user's authentication and authorization details.
      */
     @GetMapping()
-    public Mono<ResponseEntity<AuthMe>> getAuthorizations() {
-        return authzService.getAuthz()
+    public Mono<ResponseEntity<AuthMe>> getUserInfo() {
+        log.info("Get user authentication/authorization data from cache");
+
+        return authzService.getUserInfo()
                 .map(ResponseEntity::ok);
     }
 

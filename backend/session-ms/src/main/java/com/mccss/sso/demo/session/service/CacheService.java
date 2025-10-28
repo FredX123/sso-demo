@@ -2,7 +2,7 @@ package com.mccss.sso.demo.session.service;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mccss.sso.demo.commonlib.dto.AuthMe;
+import com.mccss.sso.demo.commonlib.model.UserSession;
 import com.mccss.sso.demo.session.cache.AuthzCacheKey;
 import com.mccss.sso.demo.session.config.AuthzCacheProps;
 import lombok.RequiredArgsConstructor;
@@ -26,15 +26,15 @@ public class CacheService {
      *
      * @param jwt  the JSON Web Token used to identify the user and their context; the issuer and subject
      *             are extracted for use as cache keys
-     * @param data the user authorization data, containing roles and permissions, to be cached
+     * @param userSession the user data, containing user info, roles and permissions, etc. to be cached
      */
-    public AuthMe cacheAuthz(Jwt jwt, AuthMe data) {
+    public UserSession cacheUserSession(Jwt jwt, UserSession userSession) {
         String iss = jwt.getIssuer() != null ? jwt.getIssuer().toString() : "unknown";
         String sub = jwt.getSubject();
 
-        this.put(iss, sub, data);
+        this.put(iss, sub, userSession);
 
-        return data;
+        return userSession;
     }
 
     /**
@@ -44,14 +44,15 @@ public class CacheService {
      *
      * @param jwt the JSON Web Token that contains the issuer and subject information,
      *            used to locate the corresponding authorization data in the cache
+     * @param app the application key for which the authorization data is being retrieved
      * @return the user authorization data if it exists and can be successfully resolved,
      *         or null if no corresponding data is found or if the data is invalid
      */
-    public AuthMe findAuthz(Jwt jwt) {
+    public UserSession getUserSession(Jwt jwt, String app) {
         String iss = jwt.getIssuer() != null ? jwt.getIssuer().toString() : "unknown";
         String sub = jwt.getSubject();
 
-        return this.get(iss, sub);
+        return this.get(iss, sub, app);
     }
 
     /**
@@ -63,15 +64,15 @@ public class CacheService {
      * @param iss the issuer identifier, representing the origin of the token
      * @param sub the subject identifier, representing the user or entity for which
      *            the authorization is being retrieved
-     * @return the user authorization data if it exists in the cache and is unmarshalled
+     * @return the user data if it exists in the cache and is unmarshalled
      *         successfully, or `null` if no valid data is available
      */
-    public AuthMe get(String iss, String sub) {
-        String key = keyHelper.forIssSub(iss, sub);
+    public UserSession get(String iss, String sub, String app) {
+        String key = keyHelper.createCacheKey(iss, sub, app);
         String json = redis.opsForValue().get(key);
         if (json == null) return null;
         try {
-            return mapper.readValue(json, AuthMe.class);
+            return mapper.readValue(json, UserSession.class);
         } catch (Exception e) {
             // corrupted entry: evict and miss
             redis.delete(key);
@@ -86,14 +87,14 @@ public class CacheService {
      * @param iss  the issuer identifier, representing the origin of the token
      * @param sub  the subject identifier, representing the user or entity for which
      *             the authorization data is being stored
-     * @param data the user authorization data, containing roles and permissions,
+     * @param userSession the user authorization data, containing roles and permissions,
      *             that needs to be cached
      * @throws RuntimeException if the data cannot be serialized to JSON
      */
-    public void put(String iss, String sub, AuthMe data) {
-        String key = keyHelper.forIssSub(iss, sub);
+    public void put(String iss, String sub, UserSession userSession) {
+        String key = keyHelper.createCacheKey(iss, sub, userSession.getAuthz().app());
         try {
-            String json = mapper.writeValueAsString(data);
+            String json = mapper.writeValueAsString(userSession);
             redis.opsForValue().set(key, json, authzCacheProps.getTtl());
         } catch (Exception e) {
             throw new RuntimeException("Failed to serialize authz data", e);
@@ -107,10 +108,11 @@ public class CacheService {
      * @param iss the issuer identifier, representing the origin of the token
      * @param sub the subject identifier, representing the user or entity for which
      *            the authorization cache entry is being removed
+     * @param appKey the application key for which the cache entry is being removed
      * @return true if the cache entry was successfully removed, false otherwise
      */
-    public boolean evict(String iss, String sub) {
-        String key = keyHelper.forIssSub(iss, sub);
+    public boolean evict(String iss, String sub, String appKey) {
+        String key = keyHelper.createCacheKey(iss, sub, appKey);
         Long n = redis.delete(Collections.singleton(key));
         return n > 0;
     }

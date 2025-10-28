@@ -81,9 +81,9 @@ public class TokenController {
             probes.add(authorizedClientRepo.loadAuthorizedClient(id, auth, exchange));
         }
 
-        return Mono.firstWithValue(
-                        probes.stream().map(m -> m.filter(Objects::nonNull)).toList()
-                                  )
+        return Mono.firstWithValue(probes.stream()
+                        .map(m -> m.filter(Objects::nonNull)).toList()
+                )
                 .map(ac -> ac.getClientRegistration().getRegistrationId())
                 .switchIfEmpty(Mono.empty());
     }

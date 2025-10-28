@@ -1,0 +1,14 @@
+integration:
+  auth-ms:
+    base-url: http://localhost:6003/api/backoffice
+  frontoffice-ms:
+    base-url: http://localhost:6011/api/frontoffice
+  backoffice-ms:
+    base-url: http://localhost:6021/api/backoffice
+  permission-ms:
+    base-url: http://localhost:6004/api/permission
+  session-ms:
+    base-url: http://localhost:6005/api/session
+  decisions:
+    ttl-sec: 300   # cache TTL hint for session-ms
+

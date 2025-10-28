@@ -6,7 +6,8 @@ spring:
     name: api-gateway
   config:
     import: configserver:http://localhost:6002
-
+  main:
+    web-application-type: reactive
   cloud:
     gateway:
       server:
@@ -16,6 +17,26 @@ spring:
               enabled: true
               lower-case-service-id: true
           routes:
+            - id: frontoffice
+              uri: lb://frontoffice-ms
+              predicates:
+                - Path=/api/frontoffice/**
+              filters:
+                - TokenRelay
+                - name: Decide
+                  args:
+                    app: frontoffice
+
+            - id: backoffice
+              uri: lb://backoffice-ms
+              predicates:
+                - Path=/api/backoffice/**
+              filters:
+                - TokenRelay
+                - name: Decide
+                  args:
+                    app: backoffice
+
             - id: permission
               uri: lb://permission-ms
               predicates:
@@ -30,17 +51,10 @@ spring:
               filters:
                 - TokenRelay
 
-            - id: frontoffice
-              uri: lb://frontoffice-ms
+            - id: session
+              uri: lb://session-ms
               predicates:
-                - Path=/api/frontoffice/**
-              filters:
-                - TokenRelay
-
-            - id: backoffice
-              uri: lb://backoffice-ms
-              predicates:
-                - Path=/api/backoffice/**
+                - Path=/api/session/**
               filters:
                 - TokenRelay
 

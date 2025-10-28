@@ -19,3 +19,28 @@ eureka:
   instance:
     prefer-ip-address: true
     hostname: localhost
+
+mock:
+  permissions:
+    - app: backoffice
+      rules:
+        - action: GET
+          resource: "/api/backoffice/payments"
+          roles: [ADMIN]
+        - action: POST
+          resource: "/api/backoffice/order"
+          roles: [USER]
+        - action: GET
+          resource: "/api/backoffice/orders/**"
+          roles:
+            - USER
+            - ADMIN
+
+    - app: frontoffice
+      rules:
+        - action: GET
+          resource: "/api/frontoffice/orders/**"
+          roles: [USER]
+        - action: POST
+          resource: "/api/frontoffice/checkout"
+          roles: [USER]

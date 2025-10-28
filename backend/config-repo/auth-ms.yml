@@ -21,18 +21,11 @@ eureka:
     hostname: localhost
 
 app:
-  authz:
-    api:
-      cache: http://localhost:6005/api/session/cache/authorizations
-    mock:
-      claims:
-        roles:
-          - ADMIN
-          - USER
-          - GUEST
-        permissions:
-          - READ
-          - WRITE
-          - DELETE
-          - CREATE
-          - UPDATE
+  clients:
+    frontoffice:
+      client-id: 0oaqp2kj9zEIU0LTy5d7
+    backoffice:
+      client-id: 0oaqp2q4zy9xzTqE95d7
+
+  mock-external-ms:
+    base-url: http://localhost:6006/api/mock-external

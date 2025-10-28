@@ -176,7 +176,7 @@ export class SessionTimerService implements OnDestroy {
     this.auth
       .refresh()
       .pipe(
-        switchMap(() => this.auth.loadAuth({ silent: true })),
+        switchMap(() => this.auth.initAppAuth({ silent: true })),
         map(me => ({ me, success: true as const })),
         catchError(() => of({ success: false as const })),
         takeUntil(this.destroy$)

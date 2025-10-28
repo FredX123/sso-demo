@@ -1,11 +1,11 @@
 package com.mccss.sso.demo.commonlib.integration;
 
+import com.mccss.sso.demo.commonlib.config.IntegrationProps;
 import com.mccss.sso.demo.commonlib.dto.FoAppDto;
 import com.mccss.sso.demo.commonlib.exception.ApplicationException;
 import com.mccss.sso.demo.commonlib.util.SecurityUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -14,37 +14,41 @@ import reactor.core.publisher.Mono;
 
 @Slf4j
 @Component
-public class FrontOfficeWebClient {
-
-    @Value("${url.frontoffice.api.whoami:}")
-    private String foWhoAmIApi;
+public class FrontOfficeClient {
 
     private final SecurityUtil securityUtil;
-    private final WebClient.Builder foWebClientBuilder;
+    private final WebClient.Builder foClientBuilder;
+    private final IntegrationProps integrationProps;
 
-    public FrontOfficeWebClient(@Qualifier("foWebClientBuilder") WebClient.Builder foWebClientBuilder,
-                                SecurityUtil securityUtil) {
-        this.foWebClientBuilder = foWebClientBuilder;
+    public FrontOfficeClient(@Qualifier("foClientBuilder") WebClient.Builder foClientBuilder,
+                             SecurityUtil securityUtil,
+                             IntegrationProps integrationProps) {
+        this.foClientBuilder = foClientBuilder;
         this.securityUtil = securityUtil;
+        this.integrationProps = integrationProps;
     }
 
     public Mono<FoAppDto> whoamiFromFo() {
-        return foWebClientBuilder.build()
+        return foClientBuilder.build()
                 .get()
-                .uri(foWhoAmIApi)
+                .uri(getFoWhoAmIApi())
                 .header(HttpHeaders.AUTHORIZATION, securityUtil.getAuthHeader())
                 .retrieve()
                 .bodyToMono(FoAppDto.class);
     }
 
     public Mono<FoAppDto> callFoNoToken() {
-        return foWebClientBuilder.build()
+        return foClientBuilder.build()
                 .get()
-                .uri(foWhoAmIApi)
+                .uri(getFoWhoAmIApi())
                 .retrieve()
                 .onStatus(status -> status.value() == HttpStatus.UNAUTHORIZED.value(),
                         r -> Mono.error(new ApplicationException(
                                 HttpStatus.UNAUTHORIZED.value(), "Unauthorized (401) from Frontoffice API")))
                 .bodyToMono(FoAppDto.class);
+    }
+
+    private String getFoWhoAmIApi() {
+        return integrationProps.getFrontofficeMs().getBaseUrl() + "/whoami";
     }
 }

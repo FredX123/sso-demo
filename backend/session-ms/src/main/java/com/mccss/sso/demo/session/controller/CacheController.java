@@ -1,7 +1,7 @@
 package com.mccss.sso.demo.session.controller;
 
 
-import com.mccss.sso.demo.commonlib.dto.AuthMe;
+import com.mccss.sso.demo.commonlib.model.UserSession;
 import com.mccss.sso.demo.session.service.CacheService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -17,16 +17,17 @@ public class CacheController {
     private final CacheService cacheService;
 
     /** Call this once after login (or lazily when roles first needed). */
-    @PostMapping("/authorizations")
-    public Mono<AuthMe> bootstrap(@AuthenticationPrincipal Jwt jwt, @RequestBody AuthMe authz) {
-        AuthMe me = cacheService.cacheAuthz(jwt, authz);
-        return Mono.just(me);
+    @PostMapping("/user-session")
+    public Mono<UserSession> cacheUserSession(@AuthenticationPrincipal Jwt jwt, @RequestBody UserSession request) {
+        UserSession userSession = cacheService.cacheUserSession(jwt, request);
+        return Mono.just(userSession);
     }
 
     /** Read current cached authz (also ensures cache is populated). */
-    @GetMapping("/authorizations")
-    public Mono<AuthMe> authorizations(@AuthenticationPrincipal Jwt jwt) {
-        AuthMe me = cacheService.findAuthz(jwt);
-        return Mono.just(me);
+    @GetMapping("/user-session")
+    public Mono<UserSession> getUserSession(@AuthenticationPrincipal Jwt jwt,
+                                            @RequestParam(value = "app", required = true) String app) {
+        UserSession userSession = cacheService.getUserSession(jwt, app);
+        return Mono.just(userSession);
     }
 }

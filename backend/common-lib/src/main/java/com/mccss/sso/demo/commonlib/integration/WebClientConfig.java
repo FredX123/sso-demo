@@ -1,5 +1,6 @@
 package com.mccss.sso.demo.commonlib.integration;
 
+import com.mccss.sso.demo.commonlib.config.IntegrationProps;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,20 +10,32 @@ import org.springframework.web.reactive.function.client.WebClient;
 public class WebClientConfig {
 
     @Bean
-    @Qualifier("foWebClientBuilder")
-    public WebClient.Builder foWebClientBuilder() {
+    @Qualifier("foClientBuilder")
+    public WebClient.Builder foClientBuilder() {
         return WebClient.builder();
     }
 
     @Bean
-    @Qualifier("boWebClientBuilder")
-    public WebClient.Builder boWebClientBuilder() {
+    @Qualifier("boClientBuilder")
+    public WebClient.Builder boClientBuilder() {
         return WebClient.builder();
     }
 
     @Bean
-    @Qualifier("cacheWebClientBuilder")
-    public WebClient.Builder cacheWebClientBuilder() {
+    @Qualifier("sessionClientBuilder")
+    public WebClient.Builder sessionClientBuilder() {
         return WebClient.builder();
     }
+
+    @Bean
+    @Qualifier("permissionClientBuilder")
+    public WebClient.Builder permissionClientBuilder(IntegrationProps props) {
+        return WebClient.builder().baseUrl(props.getPermissionMs().getBaseUrl());
+    }
+
+    @Bean @Qualifier("externalClientBuilder")
+    public WebClient.Builder externalClientBuilder(IntegrationProps props) {
+        return WebClient.builder().baseUrl(props.getMockExternalMs().getBaseUrl());
+    }
+
 }
