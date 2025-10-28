@@ -56,7 +56,7 @@ public class AuthzService {
                 // 2) Cache User Session which includes the role, decisions, etc
                 .flatMap(authzBundle -> {
                     AuthMe authMe = buildAuthMeFromJwt(jwt, authzBundle.roles());
-                    return sessionClient.cacheUserSession(new UserSession(authMe, authzBundle))
+                    return sessionClient.cacheUserSession(new UserSession(authMe, authzBundle), buildBearerToken(jwt))
                             .thenReturn(authMe);
                 });
     }
@@ -67,9 +67,9 @@ public class AuthzService {
      * @return a {@code Mono<AuthMe>} containing the authentication and authorization details of the user
      *         retrieved from the cache, or an empty Mono if no user session is available.
      */
-    public Mono<AuthMe> getUserInfo() {
+    public Mono<AuthMe> getUserInfo(Jwt jwt) {
         log.info("Get user authentication/authorization data from cache");
-        return sessionClient.getUserSession()
+        return sessionClient.getUserSession(buildBearerToken(jwt))
                 .map(UserSession::getAuthMe);
     }
 
@@ -93,5 +93,9 @@ public class AuthzService {
                 .expiresAt(jwt.getExpiresAt())
                 .roles(roles)
                 .build();
+    }
+
+    private String buildBearerToken(Jwt jwt) {
+        return "Bearer " + jwt.getTokenValue();
     }
 }

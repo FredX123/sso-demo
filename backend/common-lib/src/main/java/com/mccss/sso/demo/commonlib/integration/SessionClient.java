@@ -4,6 +4,7 @@ import com.mccss.sso.demo.commonlib.config.IntegrationProps;
 import com.mccss.sso.demo.commonlib.exception.ApplicationException;
 import com.mccss.sso.demo.commonlib.model.UserSession;
 import com.mccss.sso.demo.commonlib.util.SecurityUtil;
+import jakarta.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
@@ -29,14 +30,14 @@ public class SessionClient {
         this.integrationProps = integrationProps;
     }
 
-    public Mono<UserSession> cacheUserSession(UserSession data) {
+    public Mono<UserSession> cacheUserSession(UserSession userSession, @Nullable String bearer) {
         String bearerToken = securityUtil.getAuthHeader();
         return sessionClientBuilder.build()
                 .post()
                 .uri(integrationProps.getSessionMs().getBaseUrl() + "/cache/user-session")
-                .header(HttpHeaders.AUTHORIZATION, bearerToken)
+                .headers(h -> setBearer(h, bearer))
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(data)
+                .bodyValue(userSession)
                 .retrieve()
                 .onStatus(status -> status.value() == HttpStatus.UNAUTHORIZED.value(),
                         r -> Mono.error(new ApplicationException(
@@ -44,15 +45,21 @@ public class SessionClient {
                 .bodyToMono(UserSession.class);
     }
 
-    public Mono<UserSession> getUserSession() {
+    public Mono<UserSession> getUserSession(@Nullable String bearer) {
         return sessionClientBuilder.build()
                 .get()
                 .uri(integrationProps.getSessionMs().getBaseUrl() + "/cache/user-session")
-                .header(HttpHeaders.AUTHORIZATION, securityUtil.getAuthHeader())
+                .headers(h -> setBearer(h, bearer))
                 .retrieve()
                 .onStatus(status -> status.value() == HttpStatus.UNAUTHORIZED.value(),
                         r -> Mono.error(new ApplicationException(
                                 HttpStatus.UNAUTHORIZED.value(), "Unauthorized (401) from session-ms API")))
                 .bodyToMono(UserSession.class);
+    }
+
+    private static void setBearer(HttpHeaders h, @Nullable String bearer) {
+        if (bearer != null && !bearer.isBlank()) {
+            h.set(HttpHeaders.AUTHORIZATION, bearer.startsWith("Bearer ") ? bearer : "Bearer " + bearer);
+        }
     }
 }

@@ -47,10 +47,10 @@ public class AuthController {
      *         with the user's authentication and authorization details.
      */
     @GetMapping()
-    public Mono<ResponseEntity<AuthMe>> getUserInfo() {
+    public Mono<ResponseEntity<AuthMe>> getUserInfo(@AuthenticationPrincipal Jwt jwt) {
         log.info("Get user authentication/authorization data from cache");
 
-        return authzService.getUserInfo()
+        return authzService.getUserInfo(jwt)
                 .map(ResponseEntity::ok);
     }
 
