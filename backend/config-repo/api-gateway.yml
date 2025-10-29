@@ -13,7 +13,30 @@ spring:
               enabled: true
               lower-case-service-id: true
           routes:
+            # --- Auth routes per app -> auth-ms ---
+            - id: frontoffice-auth
+              order: 0
+              uri: lb://auth-ms
+              predicates:
+                - Path=/api/frontoffice/auth/**
+              filters:
+                - TokenRelay
+                - AddRequestHeader=X-App, frontoffice
+                - RewritePath=/api/frontoffice/auth/(?<segment>.*), /api/auth/${segment}  # /api/frontoffice/auth/**  ->  /api/auth/**
+
+            - id: backoffice-auth
+              order: 0
+              uri: lb://auth-ms
+              predicates:
+                - Path=/api/backoffice/auth/**
+              filters:
+                - TokenRelay
+                - AddRequestHeader=X-App, backoffice
+                - RewritePath=/api/backoffice/auth/(?<segment>.*), /api/auth/${segment}  # /api/backoffice/auth/**   ->  /api/auth/**
+
+            # --- Business routes ---
             - id: frontoffice
+              order: 1
               uri: lb://frontoffice-ms
               predicates:
                 - Path=/api/frontoffice/**
@@ -24,6 +47,7 @@ spring:
                     app: frontoffice
 
             - id: backoffice
+              order: 1
               uri: lb://backoffice-ms
               predicates:
                 - Path=/api/backoffice/**
@@ -33,6 +57,7 @@ spring:
                   args:
                     app: backoffice
 
+            # --- Common Services routes ---
             - id: permission
               uri: lb://permission-ms
               predicates:

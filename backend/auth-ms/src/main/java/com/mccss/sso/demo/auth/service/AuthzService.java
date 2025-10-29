@@ -3,7 +3,6 @@ package com.mccss.sso.demo.auth.service;
 
 import com.mccss.sso.demo.auth.app.AppAdapterRegistry;
 import com.mccss.sso.demo.auth.app.AppAuthAdapter;
-import com.mccss.sso.demo.auth.app.CurrentAppResolver;
 import com.mccss.sso.demo.commonlib.exception.ApplicationException;
 import com.mccss.sso.demo.commonlib.integration.SessionSvcClient;
 import com.mccss.sso.demo.commonlib.model.AuthMe;
@@ -22,7 +21,6 @@ import java.util.List;
 @Service
 public class AuthzService {
 
-    private final CurrentAppResolver resolver;
     private final AppAdapterRegistry registry;
     private final SessionSvcClient sessionSvcClient;
 
@@ -33,13 +31,13 @@ public class AuthzService {
      * user's authentication details are returned.
      *
      * @param jwt the JWT containing claims and information required for authentication
+     * @param appKey the application key used to resolve the corresponding application
      * @return a {@code Mono<AuthMe>} object containing the authenticated user's details, or
      *         an error if the application key is missing or invalid
      */
-    public Mono<AuthMe> loadUserInfo(Jwt jwt) {
+    public Mono<AuthMe> loadUserInfo(Jwt jwt, String appKey) {
         log.info("Load and cache user authentication/authorization data");
 
-        String appKey = resolveApp(jwt);
         if (appKey == null) {
             return Mono.error(new ApplicationException(HttpStatus.BAD_REQUEST.value(),
                     "Bad request: no app key found in JWT"));
@@ -62,14 +60,18 @@ public class AuthzService {
     }
 
     /**
-     * Retrieves the authenticated user's data from the cached user session.
+     * Retrieves user authentication and authorization data from the cache based on the provided JWT.
+     * This method uses the specified application key to resolve the corresponding app and fetch
+     * the cached user session, extracting authentication details from it.
      *
-     * @return a {@code Mono<AuthMe>} containing the authentication and authorization details of the user
-     *         retrieved from the cache, or an empty Mono if no user session is available.
+     * @param jwt    the JWT containing claims and authentication data
+     * @param appKey the application key used to resolve the corresponding application
+     * @return a {@code Mono<AuthMe>} containing the user's authentication details, or an error
+     *         if the session cannot be retrieved
      */
-    public Mono<AuthMe> getUserInfo(Jwt jwt) {
+    public Mono<AuthMe> getUserInfo(Jwt jwt, String appKey) {
         log.info("Get user authentication/authorization data from cache");
-        return sessionSvcClient.getUserSession(buildBearerToken(jwt), resolveApp(jwt))
+        return sessionSvcClient.getUserSession(buildBearerToken(jwt), appKey)
                 .map(UserSession::getAuthMe);
     }
 
@@ -93,10 +95,6 @@ public class AuthzService {
                 .expiresAt(jwt.getExpiresAt())
                 .roles(roles)
                 .build();
-    }
-
-    private String resolveApp(Jwt jwt) {
-        return resolver.resolveApp(jwt);
     }
 
     private String buildBearerToken(Jwt jwt) {

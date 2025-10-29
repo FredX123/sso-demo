@@ -24,7 +24,7 @@ public class SessionSvcClient {
     }
 
     public Mono<UserSession> cacheUserSession(UserSession userSession, @Nullable String bearer) {
-        log.info("Caching user session data...");
+        log.info("Caching user session data for application: {}", userSession.getAuthz().app());
         return sessionClient
                 .post()
                 .uri("/cache/user-session")
@@ -39,13 +39,14 @@ public class SessionSvcClient {
     }
 
     public Mono<UserSession> getUserSession(@Nullable String bearer, String app) {
-        log.info("Getting user session data...");
+        log.info("Getting user session data for application: {}", app);
         return sessionClient
                 .get()
-                .uri(uri -> uri.path("/cache/user-session")
-                        .queryParam("app", app)
-                        .build())
-                .headers(h -> setBearer(h, bearer))
+                .uri("/cache/user-session")
+                .headers(h -> {
+                    setBearer(h, bearer);
+                    h.set("X-App", app);
+                })
                 .retrieve()
                 .onStatus(status -> status.value() == HttpStatus.UNAUTHORIZED.value(),
                         r -> Mono.error(new ApplicationException(

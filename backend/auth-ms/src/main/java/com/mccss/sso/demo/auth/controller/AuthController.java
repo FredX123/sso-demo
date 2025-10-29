@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
@@ -33,10 +34,11 @@ public class AuthController {
      *         with the user's authentication and authorization details
      */
     @GetMapping("/load")
-    public Mono<ResponseEntity<AuthMe>> loadUserInfo(@AuthenticationPrincipal Jwt jwt) {
-        log.info("Load and cache user authentication/authorization data");
+    public Mono<ResponseEntity<AuthMe>> loadUserInfo(@AuthenticationPrincipal Jwt jwt,
+                                                     @RequestHeader(name = "X-App", required = false) String app) {
+        log.info("Load and cache user authentication/authorization data for app: {}", app);
 
-        return authzService.loadUserInfo(jwt)
+        return authzService.loadUserInfo(jwt, app)
                 .map(ResponseEntity::ok);
     }
 
@@ -47,10 +49,11 @@ public class AuthController {
      *         with the user's authentication and authorization details.
      */
     @GetMapping()
-    public Mono<ResponseEntity<AuthMe>> getUserInfo(@AuthenticationPrincipal Jwt jwt) {
-        log.info("Get user authentication/authorization data from cache");
+    public Mono<ResponseEntity<AuthMe>> getUserInfo(@AuthenticationPrincipal Jwt jwt,
+                                                    @RequestHeader(name = "X-App", required = false) String app) {
+        log.info("Get user authentication/authorization data from cache for app: {}", app);
 
-        return authzService.getUserInfo(jwt)
+        return authzService.getUserInfo(jwt, app)
                 .map(ResponseEntity::ok);
     }
 

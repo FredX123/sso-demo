@@ -4,8 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientProviderBuilder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -14,12 +16,15 @@ import org.springframework.security.oauth2.client.registration.ReactiveClientReg
 import org.springframework.security.oauth2.client.web.DefaultReactiveOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.authentication.RedirectServerAuthenticationEntryPoint;
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
+import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
+import reactor.core.publisher.Mono;
 
 import java.net.URI;
 import java.time.Duration;
@@ -50,34 +55,40 @@ public class SecurityConfig {
                         .pathMatchers("/actuator/**", "/public/**").permitAll()
                         .anyExchange().authenticated())
                 .exceptionHandling(e -> e
-                                // APIs: 401 JSON (no redirect)
-                                .authenticationEntryPoint((exchange, exAuth) -> {
-                                    var path = exchange.getRequest().getPath().value();
-                                    if (path.startsWith("/api/")) {
-                                        exchange.getResponse().setStatusCode(org.springframework.http.HttpStatus.UNAUTHORIZED);
-                                        return exchange.getResponse().setComplete();
-                                    }
-                                    // Pages: fall back to default redirect-to-login (handled by oauth2Login())
-                                    return new org.springframework.security.web.server.authentication.RedirectServerAuthenticationEntryPoint(
-                                            "/oauth2/authorization/frontoffice-app"  // a sane default; see note below for per-app
-                                    ).commence(exchange, exAuth);
-                                })
-                                .accessDeniedHandler((exchange, exDenied) -> {
-                                    // APIs: 403 JSON
-                                    var path = exchange.getRequest().getPath().value();
-                                    if (path.startsWith("/api/")) {
-                                        exchange.getResponse().setStatusCode(org.springframework.http.HttpStatus.FORBIDDEN);
-                                        return exchange.getResponse().setComplete();
-                                    }
-                                    return reactor.core.publisher.Mono.error(exDenied);
-                                })
-                                  )
+                        // APIs: 401 JSON (no redirect)
+                        .authenticationEntryPoint(SecurityConfig::handleUnauthorized)
+                        .accessDeniedHandler((exchange, exDenied) -> {
+                            return handleForbidden(exchange, HttpStatus.FORBIDDEN, Mono.error(exDenied));
+                        })
+                )
                 .oauth2Login(login -> login
                         .authenticationSuccessHandler(redirectToAngular())) // redirects to Angular after login
                 .oauth2Client(withDefaults())
                 .logout(logout -> logout
                         .logoutSuccessHandler(oidcLogoutSuccessHandler(clientRegistrationRepository)))
                 .build(); // ✅ TokenRelay is configured via application.yml route filters
+    }
+
+    private static Mono<Void> handleForbidden(ServerWebExchange exchange, HttpStatus forbidden, Mono<Void> exDenied) {
+        // APIs: 403 JSON
+        var path = exchange.getRequest().getPath().value();
+        if (path.startsWith("/api/")) {
+            exchange.getResponse().setStatusCode(forbidden);
+            return exchange.getResponse().setComplete();
+        }
+        return exDenied;
+    }
+
+    private static Mono<Void> handleUnauthorized(ServerWebExchange exchange, AuthenticationException exAuth) {
+        var path = exchange.getRequest().getPath().value();
+        if (path.startsWith("/api/")) {
+            exchange.getResponse().setStatusCode(org.springframework.http.HttpStatus.UNAUTHORIZED);
+            return exchange.getResponse().setComplete();
+        }
+        // Pages: fall back to default redirect-to-login (handled by oauth2Login())
+        return new RedirectServerAuthenticationEntryPoint(
+                "/oauth2/authorization/frontoffice-app"  // a sane default; see note below for per-app
+        ).commence(exchange, exAuth);
     }
 
     /**

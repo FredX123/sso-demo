@@ -42,6 +42,15 @@ public class DecideGatewayFilterFactory extends AbstractGatewayFilterFactory<Dec
         this.authorizedClientService = authorizedClientService;
     }
 
+    /**
+     * Applies the filter logic to ensure authentication and handle the request accordingly.
+     * This method ensures that the user is authenticated and then processes the request
+     * by invoking the downstream chain and performing authorization checks based on the provided configuration.
+     * If an UnAuthorizedException is encountered, an unauthorized response is sent.
+     *
+     * @param cfg the configuration object containing application-specific settings
+     * @return the {@link GatewayFilter} that applies authentication and authorization logic to the request
+     */
     @Override
     public GatewayFilter apply(Config cfg) {
         return (exchange, chain) ->
@@ -61,11 +70,25 @@ public class DecideGatewayFilterFactory extends AbstractGatewayFilterFactory<Dec
                 });
     }
 
+    /**
+     * Handles the request with authentication by verifying the application's configuration,
+     * resolving the Bearer token, fetching the user session, and forwarding the request if authorized.
+     * In cases where the application configuration is invalid or the authorization fails,
+     * appropriate error responses are generated.
+     *
+     * @param exchange the current server web exchange containing request and response details
+     * @param chain the gateway filter chain to handle the next stage of processing
+     * @param cfg the configuration object containing application-specific settings
+     * @param auth the authentication object representing the authenticated user or request context
+     * @return a {@link Mono} that completes when the request has been processed,
+     *         or emits an error if authentication or authorization fails
+     */
     private Mono<Void> handleWithAuthentication(ServerWebExchange exchange,
                                                 GatewayFilterChain chain,
                                                 Config cfg,
                                                 Authentication auth) {
         String app = cfg.getApp();
+        log.info("Handle request with authentication for application: {}", app);
         if (app == null || app.isBlank()) {
             return forbidden(exchange);
         }

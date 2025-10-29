@@ -26,7 +26,7 @@ public class CacheController {
     /** Read current cached authz (also ensures cache is populated). */
     @GetMapping("/user-session")
     public Mono<UserSession> getUserSession(@AuthenticationPrincipal Jwt jwt,
-                                            @RequestParam(value = "app", required = true) String app) {
+                                            @RequestHeader(name = "X-App", required = false) String app) {
         UserSession userSession = cacheService.getUserSession(jwt, app);
         return Mono.just(userSession);
     }
