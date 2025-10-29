@@ -1,8 +1,8 @@
 package com.mccss.sso.demo.auth.app;
 
+import com.mccss.sso.demo.auth.integration.MockExternalSvcClient;
 import com.mccss.sso.demo.commonlib.config.IntegrationProps;
-import com.mccss.sso.demo.auth.integration.ExternalClient;
-import com.mccss.sso.demo.commonlib.integration.PermissionClient;
+import com.mccss.sso.demo.commonlib.integration.PermissionSvcClient;
 import com.mccss.sso.demo.commonlib.model.AuthorizationBundle;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -11,12 +11,12 @@ import reactor.core.publisher.Mono;
 
 @Slf4j
 @Component
-public class FrontOfficeAdapter extends BackOfficeAdapter implements AppAuthAdapter {
+public class FrontofficeAdapter extends BaseAuthAdapter implements AppAuthAdapter {
 
-    public FrontOfficeAdapter(PermissionClient permissionClient,
-                             ExternalClient externalClient,
-                             IntegrationProps props) {
-        super(permissionClient, externalClient, props);
+    public FrontofficeAdapter(PermissionSvcClient permissionSvcClient,
+                              MockExternalSvcClient mockExternalSvcClient,
+                              IntegrationProps props) {
+        super(permissionSvcClient, mockExternalSvcClient, props);
     }
 
     @Override

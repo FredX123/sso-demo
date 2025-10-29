@@ -14,41 +14,37 @@ import reactor.core.publisher.Mono;
 
 @Slf4j
 @Component
-public class FrontOfficeClient {
+public class FrontofficeSvcClient {
 
     private final SecurityUtil securityUtil;
-    private final WebClient.Builder foClientBuilder;
-    private final IntegrationProps integrationProps;
+    private final WebClient frontofficeClient;
 
-    public FrontOfficeClient(@Qualifier("foClientBuilder") WebClient.Builder foClientBuilder,
-                             SecurityUtil securityUtil,
-                             IntegrationProps integrationProps) {
-        this.foClientBuilder = foClientBuilder;
+    public FrontofficeSvcClient(@Qualifier("frontofficeClient") WebClient frontofficeClient,
+                                SecurityUtil securityUtil,
+                                IntegrationProps integrationProps) {
+        this.frontofficeClient = frontofficeClient;
         this.securityUtil = securityUtil;
-        this.integrationProps = integrationProps;
     }
 
     public Mono<FoAppDto> whoamiFromFo() {
-        return foClientBuilder.build()
+        log.info("whoami-from-fo");
+        return frontofficeClient
                 .get()
-                .uri(getFoWhoAmIApi())
+                .uri("/whoami")
                 .header(HttpHeaders.AUTHORIZATION, securityUtil.getAuthHeader())
                 .retrieve()
                 .bodyToMono(FoAppDto.class);
     }
 
     public Mono<FoAppDto> callFoNoToken() {
-        return foClientBuilder.build()
+        log.info("whoami-from-fo-no-token");
+        return frontofficeClient
                 .get()
-                .uri(getFoWhoAmIApi())
+                .uri("/whoami")
                 .retrieve()
                 .onStatus(status -> status.value() == HttpStatus.UNAUTHORIZED.value(),
                         r -> Mono.error(new ApplicationException(
                                 HttpStatus.UNAUTHORIZED.value(), "Unauthorized (401) from Frontoffice API")))
                 .bodyToMono(FoAppDto.class);
-    }
-
-    private String getFoWhoAmIApi() {
-        return integrationProps.getFrontofficeMs().getBaseUrl() + "/whoami";
     }
 }

@@ -1,6 +1,7 @@
 package com.mccss.sso.demo.apigateway.security;
 
-import com.mccss.sso.demo.commonlib.integration.SessionClient;
+import com.mccss.sso.demo.commonlib.exception.UnAuthorizedException;
+import com.mccss.sso.demo.commonlib.integration.SessionSvcClient;
 import com.mccss.sso.demo.commonlib.model.AuthorizationBundle;
 import com.mccss.sso.demo.commonlib.model.Decision;
 import com.mccss.sso.demo.commonlib.model.UserSession;
@@ -8,6 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -28,64 +30,94 @@ import java.util.List;
 @Component("Decide")
 public class DecideGatewayFilterFactory extends AbstractGatewayFilterFactory<DecideGatewayFilterFactory.Config> {
 
-    private final SessionClient sessionClient;
+    private final SessionSvcClient sessionSvcClient;
     private final ReactiveOAuth2AuthorizedClientService authorizedClientService;
     private final PathPatternParser parser = new PathPatternParser();
 
-    // ✅ IMPORTANT: call super(Config.class)
-    public DecideGatewayFilterFactory(SessionClient sessionClient,
+    // IMPORTANT: call super(Config.class)
+    public DecideGatewayFilterFactory(SessionSvcClient sessionSvcClient,
                                       ReactiveOAuth2AuthorizedClientService authorizedClientService) {
-        super(Config.class); // <-- this prevents the ClassCastException
-        this.sessionClient = sessionClient;
+        super(Config.class);
+        this.sessionSvcClient = sessionSvcClient;
         this.authorizedClientService = authorizedClientService;
     }
 
     @Override
     public GatewayFilter apply(Config cfg) {
         return (exchange, chain) ->
-                exchange.getPrincipal().flatMap(p -> {
-                            if (!(p instanceof Authentication auth)) {
-                                exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                                return exchange.getResponse().setComplete();
-                            }
+                ensureAuthentication(exchange)
+                        .flatMap(auth -> handleWithAuthentication(exchange, chain, cfg, auth))
+                        .onErrorResume(UnAuthorizedException.class, e -> unauthorized(exchange));
+    }
 
-                            final String app = cfg.getApp();
-                            if (app == null || app.isBlank()) {
-                                exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
-                                return exchange.getResponse().setComplete();
-                            }
+    private Mono<Authentication> ensureAuthentication(ServerWebExchange exchange) {
+        return exchange.getPrincipal()
+                .switchIfEmpty(Mono.error(unauthorizedError("Principal is missing")))
+                .flatMap(principal -> {
+                    if (principal instanceof Authentication auth) {
+                        return Mono.just(auth);
+                    }
+                    return Mono.error(unauthorizedError("Principal is missing"));
+                });
+    }
 
-                            var req = exchange.getRequest();
-                            String action = req.getMethod() != null ? req.getMethod().name() : "GET";
-                            String resource = req.getPath().value();
+    private Mono<Void> handleWithAuthentication(ServerWebExchange exchange,
+                                                GatewayFilterChain chain,
+                                                Config cfg,
+                                                Authentication auth) {
+        String app = cfg.getApp();
+        if (app == null || app.isBlank()) {
+            return forbidden(exchange);
+        }
 
-                            return resolveBearer(exchange, auth)
-                                    .flatMap(bearer -> sessionClient.getUserSession(bearer)
-                                            .defaultIfEmpty(new UserSession(
-                                                    null, new AuthorizationBundle(null, null, app, List.of(), List.of(), 0)))
-                                            .flatMap(us -> {
-                                                var bundle = us.getAuthz();
-                                                var decisions = (bundle != null && bundle.decisions() != null)
-                                                        ? bundle.decisions() : List.<Decision>of();
+        var request = exchange.getRequest();
+        String action = request.getMethod().name();
+        String resource = request.getPath().value();
 
-                                                if (!match(decisions, action, resource)) {
-                                                    exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
-                                                    return exchange.getResponse().setComplete();
-                                                }
+        return resolveBearer(exchange, auth)
+                .switchIfEmpty(Mono.error(unauthorizedError("Bearer token is missing")))
+                .flatMap(bearer -> fetchUserSession(bearer, app)
+                        .flatMap(session -> forwardIfAuthorized(session, action, resource, app, exchange, chain)));
+    }
 
-                                                var mutated = req.mutate().headers(h -> h.set("X-App", app)).build();
-                                                return chain.filter(exchange.mutate().request(mutated).build());
-                                            })
-                                    )
-                                    .switchIfEmpty(Mono.defer(() -> {
-                                        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                                        return exchange.getResponse().setComplete();
-                                    }));
-                        })
-                        .switchIfEmpty(Mono.defer(() -> {
-                            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                            return exchange.getResponse().setComplete();
-                        }));
+    private Mono<UserSession> fetchUserSession(String bearer, String app) {
+        return sessionSvcClient.getUserSession(bearer, app)
+                .defaultIfEmpty(new UserSession(
+                        null, new AuthorizationBundle(null, null, app, List.of(), List.of(), 0)));
+    }
+
+    private Mono<Void> forwardIfAuthorized(UserSession session,
+                                           String action,
+                                           String resource,
+                                           String app,
+                                           ServerWebExchange exchange,
+                                           GatewayFilterChain chain) {
+        var bundle = session.getAuthz();
+        var decisions = (bundle != null && bundle.decisions() != null)
+                ? bundle.decisions()
+                : List.<Decision>of();
+
+        if (!match(decisions, action, resource)) {
+            return forbidden(exchange);
+        }
+
+        var mutatedRequest = exchange.getRequest()
+                .mutate()
+                .headers(headers -> headers.set("X-App", app))
+                .build();
+        var mutatedExchange = exchange.mutate().request(mutatedRequest).build();
+        return chain.filter(mutatedExchange);
+    }
+
+    // Response helpers
+    private Mono<Void> unauthorized(ServerWebExchange exchange) {
+        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+        return exchange.getResponse().setComplete();
+    }
+
+    private Mono<Void> forbidden(ServerWebExchange exchange) {
+        exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
+        return exchange.getResponse().setComplete();
     }
 
     private Mono<String> resolveBearer(ServerWebExchange exchange, Authentication auth) {
@@ -106,13 +138,23 @@ public class DecideGatewayFilterFactory extends AbstractGatewayFilterFactory<Dec
 
     private boolean match(List<Decision> decisions, String action, String resource) {
         PathContainer path = PathContainer.parsePath(resource);
-        for (Decision d : decisions) {
-            if (!d.allowed()) continue;
-            if (!d.action().equalsIgnoreCase(action)) continue;
-            PathPattern pat = parser.parse(d.resource());
-            if (pat.matches(path)) return true;
+        for (Decision decision : decisions) {
+            if (!decision.allowed()) {
+                continue;
+            }
+            if (!decision.action().equalsIgnoreCase(action)) {
+                continue;
+            }
+            PathPattern pattern = parser.parse(decision.resource());
+            if (pattern.matches(path)) {
+                return true;
+            }
         }
         return false;
+    }
+
+    private UnAuthorizedException unauthorizedError(String message) {
+        return new UnAuthorizedException(HttpStatus.UNAUTHORIZED.value(), message);
     }
 
     @Getter
@@ -121,4 +163,3 @@ public class DecideGatewayFilterFactory extends AbstractGatewayFilterFactory<Dec
         private String app; // set per route
     }
 }
-

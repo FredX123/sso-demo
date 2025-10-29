@@ -2,7 +2,7 @@ package com.mccss.sso.demo.backoffice.service;
 
 import com.mccss.sso.demo.commonlib.dto.FoAppDto;
 import com.mccss.sso.demo.commonlib.dto.BoAppDto;
-import com.mccss.sso.demo.commonlib.integration.FrontOfficeClient;
+import com.mccss.sso.demo.commonlib.integration.FrontofficeSvcClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -13,7 +13,7 @@ import reactor.core.publisher.Mono;
 @Service
 public class BackofficeService {
 
-    private final FrontOfficeClient frontOfficeClient;
+    private final FrontofficeSvcClient frontofficeSvcClient;
 
     public Mono<BoAppDto> whoami(String user, String accessToken) {
         return Mono.fromSupplier(() -> BoAppDto.builder()
@@ -25,10 +25,10 @@ public class BackofficeService {
     }
 
     public Mono<FoAppDto> whoamiFromFo() {
-        return frontOfficeClient.whoamiFromFo();
+        return frontofficeSvcClient.whoamiFromFo();
     }
 
     public Mono<FoAppDto> whoamiFromFoNoToken() {
-        return frontOfficeClient.callFoNoToken();
+        return frontofficeSvcClient.callFoNoToken();
     }
 }

@@ -21,4 +21,6 @@ public class SecurityUtil {
         String authHeader = attrs.getRequest().getHeader(HttpHeaders.AUTHORIZATION);
         return authHeader == null || !authHeader.startsWith("Bearer ") ? null : authHeader;
     }
+
+
 }

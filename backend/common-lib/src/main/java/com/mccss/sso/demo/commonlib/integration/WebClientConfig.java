@@ -1,41 +1,45 @@
 package com.mccss.sso.demo.commonlib.integration;
 
 import com.mccss.sso.demo.commonlib.config.IntegrationProps;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.client.WebClient;
 
+@RequiredArgsConstructor
 @Configuration
 public class WebClientConfig {
 
+    private final IntegrationProps integrationProps;
+
     @Bean
-    @Qualifier("foClientBuilder")
-    public WebClient.Builder foClientBuilder() {
-        return WebClient.builder();
+    @Qualifier("frontofficeClient")
+    public WebClient frontofficeClient() {
+        return WebClient.builder().baseUrl(integrationProps.getFrontofficeMs().getBaseUrl()).build();
     }
 
     @Bean
-    @Qualifier("boClientBuilder")
-    public WebClient.Builder boClientBuilder() {
-        return WebClient.builder();
+    @Qualifier("backofficeClient")
+    public WebClient backofficeClient() {
+        return WebClient.builder().baseUrl(integrationProps.getBackofficeMs().getBaseUrl()).build();
     }
 
     @Bean
-    @Qualifier("sessionClientBuilder")
-    public WebClient.Builder sessionClientBuilder() {
-        return WebClient.builder();
+    @Qualifier("sessionClient")
+    public WebClient sessionClient() {
+        return WebClient.builder().baseUrl(integrationProps.getSessionMs().getBaseUrl()).build();
     }
 
     @Bean
-    @Qualifier("permissionClientBuilder")
-    public WebClient.Builder permissionClientBuilder(IntegrationProps props) {
-        return WebClient.builder().baseUrl(props.getPermissionMs().getBaseUrl());
+    @Qualifier("permissionSvcClient")
+    public WebClient permissionClient() {
+        return WebClient.builder().baseUrl(integrationProps.getPermissionMs().getBaseUrl()).build();
     }
 
-    @Bean @Qualifier("externalClientBuilder")
-    public WebClient.Builder externalClientBuilder(IntegrationProps props) {
-        return WebClient.builder().baseUrl(props.getMockExternalMs().getBaseUrl());
+    @Bean @Qualifier("mockExternalClient")
+    public WebClient mockExternalClient() {
+        return WebClient.builder().baseUrl(integrationProps.getMockExternalMs().getBaseUrl()).build();
     }
 
 }

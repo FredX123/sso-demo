@@ -5,7 +5,7 @@ import com.mccss.sso.demo.auth.app.AppAdapterRegistry;
 import com.mccss.sso.demo.auth.app.AppAuthAdapter;
 import com.mccss.sso.demo.auth.app.CurrentAppResolver;
 import com.mccss.sso.demo.commonlib.exception.ApplicationException;
-import com.mccss.sso.demo.commonlib.integration.SessionClient;
+import com.mccss.sso.demo.commonlib.integration.SessionSvcClient;
 import com.mccss.sso.demo.commonlib.model.AuthMe;
 import com.mccss.sso.demo.commonlib.model.UserSession;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,7 @@ public class AuthzService {
 
     private final CurrentAppResolver resolver;
     private final AppAdapterRegistry registry;
-    private final SessionClient sessionClient;
+    private final SessionSvcClient sessionSvcClient;
 
     /**
      * Loads and caches user authentication and authorization data based on the provided JWT.
@@ -39,7 +39,7 @@ public class AuthzService {
     public Mono<AuthMe> loadUserInfo(Jwt jwt) {
         log.info("Load and cache user authentication/authorization data");
 
-        String appKey = resolver.resolveApp(jwt);
+        String appKey = resolveApp(jwt);
         if (appKey == null) {
             return Mono.error(new ApplicationException(HttpStatus.BAD_REQUEST.value(),
                     "Bad request: no app key found in JWT"));
@@ -56,7 +56,7 @@ public class AuthzService {
                 // 2) Cache User Session which includes the role, decisions, etc
                 .flatMap(authzBundle -> {
                     AuthMe authMe = buildAuthMeFromJwt(jwt, authzBundle.roles());
-                    return sessionClient.cacheUserSession(new UserSession(authMe, authzBundle), buildBearerToken(jwt))
+                    return sessionSvcClient.cacheUserSession(new UserSession(authMe, authzBundle), buildBearerToken(jwt))
                             .thenReturn(authMe);
                 });
     }
@@ -69,7 +69,7 @@ public class AuthzService {
      */
     public Mono<AuthMe> getUserInfo(Jwt jwt) {
         log.info("Get user authentication/authorization data from cache");
-        return sessionClient.getUserSession(buildBearerToken(jwt))
+        return sessionSvcClient.getUserSession(buildBearerToken(jwt), resolveApp(jwt))
                 .map(UserSession::getAuthMe);
     }
 
@@ -93,6 +93,10 @@ public class AuthzService {
                 .expiresAt(jwt.getExpiresAt())
                 .roles(roles)
                 .build();
+    }
+
+    private String resolveApp(Jwt jwt) {
+        return resolver.resolveApp(jwt);
     }
 
     private String buildBearerToken(Jwt jwt) {

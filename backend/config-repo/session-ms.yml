@@ -27,5 +27,5 @@ eureka:
 app:
   authz:
     cache:
-      ttl: 15m                         # TTL for cached auth data
+      ttl: 60m                         # TTL for cached auth data
       hashKey: false                   # set true to SHA-256 the key (privacy)

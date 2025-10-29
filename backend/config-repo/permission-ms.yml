@@ -25,13 +25,16 @@ mock:
     - app: backoffice
       rules:
         - action: GET
-          resource: "/api/backoffice/payments"
+          resource: "/api/backoffice/**"
           roles: [ADMIN]
         - action: POST
-          resource: "/api/backoffice/order"
-          roles: [USER]
+          resource: "/api/backoffice/**"
+          roles: [ ADMIN ]
         - action: GET
-          resource: "/api/backoffice/orders/**"
+          resource: "/api/backoffice/whoami-from-fo"
+          roles: [ADMIN]
+        - action: GET
+          resource: "/api/backoffice/whoami"
           roles:
             - USER
             - ADMIN
@@ -39,8 +42,8 @@ mock:
     - app: frontoffice
       rules:
         - action: GET
-          resource: "/api/frontoffice/orders/**"
+          resource: "/api/frontoffice/**"
           roles: [USER]
         - action: POST
-          resource: "/api/frontoffice/checkout"
+          resource: "/api/frontoffice/**"
           roles: [USER]

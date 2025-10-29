@@ -1,6 +1,5 @@
 package com.mccss.sso.demo.commonlib.integration;
 
-import com.mccss.sso.demo.commonlib.config.IntegrationProps;
 import com.mccss.sso.demo.commonlib.exception.ApplicationException;
 import com.mccss.sso.demo.commonlib.model.PermissionSet;
 import com.mccss.sso.demo.commonlib.util.SecurityUtil;
@@ -14,24 +13,22 @@ import reactor.core.publisher.Mono;
 
 @Slf4j
 @Component
-public class PermissionClient {
+public class PermissionSvcClient {
 
     private final SecurityUtil securityUtil;
-    private final WebClient.Builder permissionClientBuilder;
-    private final IntegrationProps integrationProps;
+    private final WebClient permissionClient;
 
-    public PermissionClient(@Qualifier("permissionClientBuilder") WebClient.Builder permissionClientBuilder,
-                            SecurityUtil securityUtil,
-                            IntegrationProps integrationProps) {
-        this.permissionClientBuilder = permissionClientBuilder;
+    public PermissionSvcClient(@Qualifier("permissionSvcClient") WebClient permissionClient,
+                               SecurityUtil securityUtil) {
+        this.permissionClient = permissionClient;
         this.securityUtil = securityUtil;
-        this.integrationProps = integrationProps;
     }
 
     public Mono<PermissionSet> getPermissionsByApp(String appKey) {
-        return permissionClientBuilder.build()
+        log.info("Getting RBAC permissions for app {}", appKey);
+        return permissionClient
                 .get()
-                .uri(getPermissionByAppApi() + "/" + appKey)
+                .uri("/" + appKey)
                 .header(HttpHeaders.AUTHORIZATION, securityUtil.getAuthHeader())
                 .retrieve()
                 .onStatus(status -> status.value() == HttpStatus.UNAUTHORIZED.value(),
@@ -39,9 +36,4 @@ public class PermissionClient {
                                 HttpStatus.UNAUTHORIZED.value(), "Unauthorized (401) from Backoffice API")))
                 .bodyToMono(PermissionSet.class);
     }
-
-    private String getPermissionByAppApi() {
-        return integrationProps.getPermissionMs().getBaseUrl();
-    }
-
 }

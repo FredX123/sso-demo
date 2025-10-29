@@ -1,11 +1,10 @@
 package com.mccss.sso.demo.commonlib.integration;
 
-import com.mccss.sso.demo.commonlib.config.IntegrationProps;
 import com.mccss.sso.demo.commonlib.exception.ApplicationException;
 import com.mccss.sso.demo.commonlib.model.UserSession;
-import com.mccss.sso.demo.commonlib.util.SecurityUtil;
 import jakarta.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -16,25 +15,19 @@ import reactor.core.publisher.Mono;
 
 @Slf4j
 @Component
-public class SessionClient {
+public class SessionSvcClient {
 
-    private final WebClient.Builder sessionClientBuilder;
-    private final SecurityUtil securityUtil;
-    private final IntegrationProps integrationProps;
+    private final WebClient sessionClient;
 
-    public SessionClient(@Qualifier("sessionClientBuilder") WebClient.Builder sessionClientBuilder,
-                         SecurityUtil securityUtil,
-                         IntegrationProps integrationProps) {
-        this.sessionClientBuilder = sessionClientBuilder;
-        this.securityUtil = securityUtil;
-        this.integrationProps = integrationProps;
+    public SessionSvcClient(@Qualifier("sessionClient") WebClient sessionClient) {
+        this.sessionClient = sessionClient;
     }
 
     public Mono<UserSession> cacheUserSession(UserSession userSession, @Nullable String bearer) {
-        String bearerToken = securityUtil.getAuthHeader();
-        return sessionClientBuilder.build()
+        log.info("Caching user session data...");
+        return sessionClient
                 .post()
-                .uri(integrationProps.getSessionMs().getBaseUrl() + "/cache/user-session")
+                .uri("/cache/user-session")
                 .headers(h -> setBearer(h, bearer))
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(userSession)
@@ -45,10 +38,13 @@ public class SessionClient {
                 .bodyToMono(UserSession.class);
     }
 
-    public Mono<UserSession> getUserSession(@Nullable String bearer) {
-        return sessionClientBuilder.build()
+    public Mono<UserSession> getUserSession(@Nullable String bearer, String app) {
+        log.info("Getting user session data...");
+        return sessionClient
                 .get()
-                .uri(integrationProps.getSessionMs().getBaseUrl() + "/cache/user-session")
+                .uri(uri -> uri.path("/cache/user-session")
+                        .queryParam("app", app)
+                        .build())
                 .headers(h -> setBearer(h, bearer))
                 .retrieve()
                 .onStatus(status -> status.value() == HttpStatus.UNAUTHORIZED.value(),
@@ -57,9 +53,9 @@ public class SessionClient {
                 .bodyToMono(UserSession.class);
     }
 
-    private static void setBearer(HttpHeaders h, @Nullable String bearer) {
-        if (bearer != null && !bearer.isBlank()) {
-            h.set(HttpHeaders.AUTHORIZATION, bearer.startsWith("Bearer ") ? bearer : "Bearer " + bearer);
+    private static void setBearer(HttpHeaders headers, @Nullable String bearer) {
+        if (StringUtils.isNotBlank(bearer)) {
+            headers.set(HttpHeaders.AUTHORIZATION, bearer.startsWith("Bearer ") ? bearer : "Bearer " + bearer);
         }
     }
 }

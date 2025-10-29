@@ -2,7 +2,7 @@ package com.mccss.sso.demo.frontoffice.controller;
 
 import com.mccss.sso.demo.commonlib.dto.BoAppDto;
 import com.mccss.sso.demo.commonlib.dto.FoAppDto;
-import com.mccss.sso.demo.frontoffice.service.FrontOfficeService;
+import com.mccss.sso.demo.frontoffice.service.FrontofficeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -17,9 +17,9 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/frontoffice")
-public class FrontOfficeController {
+public class FrontofficeController {
 
-    private final FrontOfficeService service;
+    private final FrontofficeService service;
 
     @GetMapping("/whoami")
     public Mono<ResponseEntity<FoAppDto>> whoami(@AuthenticationPrincipal Jwt jwt) {

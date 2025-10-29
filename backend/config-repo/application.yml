@@ -9,6 +9,8 @@ integration:
     base-url: http://localhost:6004/api/permission
   session-ms:
     base-url: http://localhost:6005/api/session
+  mock-external-ms:
+    base-url: http://localhost:6006/api/mock-external
   decisions:
-    ttl-sec: 300   # cache TTL hint for session-ms
+    ttl-sec: 18000   # cache TTL hint for session-ms
 

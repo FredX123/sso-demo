@@ -1,8 +1,8 @@
 package com.mccss.sso.demo.auth.app;
 
 import com.mccss.sso.demo.commonlib.config.IntegrationProps;
-import com.mccss.sso.demo.auth.integration.ExternalClient;
-import com.mccss.sso.demo.commonlib.integration.PermissionClient;
+import com.mccss.sso.demo.auth.integration.MockExternalSvcClient;
+import com.mccss.sso.demo.commonlib.integration.PermissionSvcClient;
 import com.mccss.sso.demo.commonlib.model.AuthorizationBundle;
 import com.mccss.sso.demo.commonlib.model.Decision;
 import com.mccss.sso.demo.commonlib.model.PermissionSet;
@@ -22,8 +22,8 @@ import java.util.Set;
 @Component
 public abstract class BaseAuthAdapter {
 
-    private final PermissionClient permissionClient;
-    private final ExternalClient externalClient;
+    private final PermissionSvcClient permissionSvcClient;
+    private final MockExternalSvcClient mockExternalSvcClient;
     private final IntegrationProps props;
 
     public abstract String appKey();
@@ -32,8 +32,8 @@ public abstract class BaseAuthAdapter {
         String iss = jwt.getIssuer().toString();
         String sub = jwt.getSubject();
 
-        Mono<PermissionSet> rulesMono = permissionClient.getPermissionsByApp(appKey());
-        Mono<UserRoles> rolesMono = externalClient.getUserRoles(sub);
+        Mono<PermissionSet> rulesMono = permissionSvcClient.getPermissionsByApp(appKey());
+        Mono<UserRoles> rolesMono = mockExternalSvcClient.getUserRoles(sub);
 
         return Mono.zip(rulesMono, rolesMono).map(tuple2 -> {
             PermissionSet permissions = tuple2.getT1();

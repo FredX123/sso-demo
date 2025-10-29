@@ -81,8 +81,8 @@ The system should be started in the following sequence:
 - Filenames must match the Spring application name (`spring.application.name`).  
   - `permission-ms.yml` → for permission service
   - `auth-ms.yml` → for auth service
-  - `frontoffice-ms.yml` → for BackeOffice Service  
-  - `backoffice-ms.yml` → for FrontOffice Service
+  - `frontoffice-ms.yml` → for Backeoffice Service  
+  - `backoffice-ms.yml` → for Frontoffice Service
 - Global defaults go into `application.yml`.
 
 ## Verify Setup

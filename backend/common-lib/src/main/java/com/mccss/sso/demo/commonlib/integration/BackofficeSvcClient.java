@@ -1,6 +1,5 @@
 package com.mccss.sso.demo.commonlib.integration;
 
-import com.mccss.sso.demo.commonlib.config.IntegrationProps;
 import com.mccss.sso.demo.commonlib.dto.BoAppDto;
 import com.mccss.sso.demo.commonlib.exception.ApplicationException;
 import com.mccss.sso.demo.commonlib.util.SecurityUtil;
@@ -14,24 +13,22 @@ import reactor.core.publisher.Mono;
 
 @Slf4j
 @Component
-public class BackOfficeClient {
+public class BackofficeSvcClient {
 
     private final SecurityUtil securityUtil;
-    private final WebClient.Builder boClientBuilder;
-    private final IntegrationProps integrationProps;
+    private final WebClient backofficeClient;
 
-    public BackOfficeClient(@Qualifier("boClientBuilder") WebClient.Builder boClientBuilder,
-                            SecurityUtil securityUtil,
-                            IntegrationProps integrationProps) {
-        this.boClientBuilder = boClientBuilder;
+    public BackofficeSvcClient(@Qualifier("backofficeClient") WebClient backofficeClient,
+                               SecurityUtil securityUtil) {
+        this.backofficeClient = backofficeClient;
         this.securityUtil = securityUtil;
-        this.integrationProps = integrationProps;
     }
 
     public Mono<BoAppDto> whoamiFromBo() {
-        return boClientBuilder.build()
+        log.info("whoami-from-bo");
+        return backofficeClient
                 .get()
-                .uri(getBoWhoAmIApi())
+                .uri("/whoami")
                 .header(HttpHeaders.AUTHORIZATION, securityUtil.getAuthHeader())
                 .retrieve()
                 .onStatus(status -> status.value() == HttpStatus.UNAUTHORIZED.value(),
@@ -41,14 +38,11 @@ public class BackOfficeClient {
     }
 
     public Mono<BoAppDto> callBoNoToken() {
-        return boClientBuilder.build()
+        log.info("whoami-from-bo-no-token");
+        return backofficeClient
                 .get()
-                .uri(getBoWhoAmIApi())
+                .uri("/whoami")
                 .retrieve()
                 .bodyToMono(BoAppDto.class);
-    }
-
-    private String getBoWhoAmIApi() {
-        return integrationProps.getBackofficeMs().getBaseUrl() + "/whoami";
     }
 }
