@@ -153,14 +153,22 @@ Workspace: `ui-workspace/`
 ```mermaid
 sequenceDiagram
   participant UI
-  participant AUTH
+  participant Gateway as Gateway (BFF)
+  participant AuthMS as Auth-MS (PDP)
 
-  Note over UI: Timer checks token expiry.
-  UI->>AUTH: GET /api/auth/refresh
-  alt success
-    UI->>UI: Extend expiry, hide dialog
-  else failure
-    UI->>UI: Show expired session dialog
+  Note over UI: SessionTimerService tracks expiresAt and opens dialog 60s early
+  UI->>Gateway: GET /api/token/refresh
+  alt Refresh succeeds
+    Gateway-->>UI: 200 OK
+    UI->>Gateway: GET /api/auth/authorizations/touch
+    Note over UI,Gateway: Uses header X-Silent-Auth=true to avoid nested refresh
+    Gateway->>AuthMS: Forward touch request with TokenRelay
+    AuthMS-->>Gateway: 200 AuthMe
+    Gateway-->>UI: 200 AuthMe
+    UI->>UI: Hide countdown dialog
+  else Refresh fails
+    Gateway-->>UI: 401 Unauthorized
+    UI->>UI: Show expired session dialog and prompt logout
   end
 ```
 
