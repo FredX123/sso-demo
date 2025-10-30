@@ -43,6 +43,9 @@ public class BackofficeSvcClient {
                 .get()
                 .uri("/whoami")
                 .retrieve()
+                .onStatus(status -> status.value() == HttpStatus.UNAUTHORIZED.value(),
+                        r -> Mono.error(new ApplicationException(
+                                HttpStatus.UNAUTHORIZED.value(), "Unauthorized (401) from Backoffice API")))
                 .bodyToMono(BoAppDto.class);
     }
 }
