@@ -45,8 +45,6 @@ export class AuthService {
   }
 
   refresh() {
-    console.log('Refreshinggggggggggggggggg token ......................');
-    
     return this.http.get(`${this.gatewayBase}/api/token/refresh`, { withCredentials: true });
   }
 
