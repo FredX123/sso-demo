@@ -8,6 +8,5 @@ public record AuthorizationBundle(
         String sub,
         String app,
         List<Decision> decisions,
-        List<String> roles,
-        int ttlSec
+        List<String> roles
 ) {}

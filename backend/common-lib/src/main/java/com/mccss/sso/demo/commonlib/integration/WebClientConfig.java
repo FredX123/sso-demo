@@ -37,9 +37,5 @@ public class WebClientConfig {
         return WebClient.builder().baseUrl(integrationProps.getPermissionMs().getBaseUrl()).build();
     }
 
-    @Bean @Qualifier("mockExternalClient")
-    public WebClient mockExternalClient() {
-        return WebClient.builder().baseUrl(integrationProps.getMockExternalMs().getBaseUrl()).build();
-    }
 
 }

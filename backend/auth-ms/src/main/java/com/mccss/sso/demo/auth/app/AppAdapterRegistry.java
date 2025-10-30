@@ -1,5 +1,7 @@
 package com.mccss.sso.demo.auth.app;
 
+import com.mccss.sso.demo.commonlib.spi.AppAuthAdapter;
+import com.mccss.sso.demo.commonlib.spi.AppKey;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -24,8 +26,12 @@ public class AppAdapterRegistry {
 
     private final Map<String, AppAuthAdapter> adapters = new HashMap<>();
 
-    public AppAdapterRegistry(List<AppAuthAdapter> beans) {
-        beans.forEach(a -> adapters.put(a.appKey(), a));
+    public AppAdapterRegistry(List<AppAuthAdapter> discovered) {
+        // Each plugin will annotate with @Component and maybe @Qualifier("frontoffice")
+        for (AppAuthAdapter adapter : discovered) {
+            String appKey = resolveAppKey(adapter);
+            adapters.put(appKey, adapter);
+        }
     }
 
     /**
@@ -39,5 +45,13 @@ public class AppAdapterRegistry {
      */
     public AppAuthAdapter get(String app) {
         return adapters.get(app);
+    }
+
+    private String resolveAppKey(AppAuthAdapter adapter) {
+        // simplest: adapter class has @AppKey("frontoffice")
+        AppKey ann = adapter.getClass().getAnnotation(AppKey.class);
+        if (ann != null) return ann.value();
+        // fallback: bean name, or throw
+        throw new IllegalStateException("Adapter " + adapter + " has no @AppKey");
     }
 }

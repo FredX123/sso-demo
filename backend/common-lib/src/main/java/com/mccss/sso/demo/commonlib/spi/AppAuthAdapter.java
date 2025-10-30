@@ -1,9 +1,10 @@
-package com.mccss.sso.demo.auth.app;
+package com.mccss.sso.demo.commonlib.spi;
 
 import com.mccss.sso.demo.commonlib.model.AuthorizationBundle;
-import com.mccss.sso.demo.commonlib.model.DecisionResponse;
-import org.springframework.security.oauth2.jwt.Jwt;
+import com.mccss.sso.demo.commonlib.model.UserRoles;
 import reactor.core.publisher.Mono;
+
+import java.util.Map;
 
 public interface AppAuthAdapter {
 
@@ -16,5 +17,9 @@ public interface AppAuthAdapter {
      */
     String appKey();
 
-    Mono<AuthorizationBundle> buildDecisions(Jwt jwt);
+    Mono<AuthorizationBundle> buildDecisions(String issuer, String subject);
+
+    Mono<UserRoles> getUserRoles(String sub);
+
+    Mono<Map<String, Object>> getAttributes(String sub);
 }

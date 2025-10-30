@@ -2,11 +2,11 @@ package com.mccss.sso.demo.auth.service;
 
 
 import com.mccss.sso.demo.auth.app.AppAdapterRegistry;
-import com.mccss.sso.demo.auth.app.AppAuthAdapter;
 import com.mccss.sso.demo.commonlib.exception.ApplicationException;
 import com.mccss.sso.demo.commonlib.integration.SessionSvcClient;
 import com.mccss.sso.demo.commonlib.model.AuthMe;
 import com.mccss.sso.demo.commonlib.model.UserSession;
+import com.mccss.sso.demo.commonlib.spi.AppAuthAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -50,7 +50,9 @@ public class AuthzService {
         }
 
         // 1) Build decisions
-        return adapter.buildDecisions(jwt)
+        String iss = jwt.getIssuer().toString();
+        String sub = jwt.getSubject();
+        return adapter.buildDecisions(iss, sub)
                 // 2) Cache User Session which includes the role, decisions, etc
                 .flatMap(authzBundle -> {
                     AuthMe authMe = buildAuthMeFromJwt(jwt, authzBundle.roles());

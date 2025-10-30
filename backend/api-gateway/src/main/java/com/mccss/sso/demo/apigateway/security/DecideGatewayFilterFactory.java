@@ -106,7 +106,7 @@ public class DecideGatewayFilterFactory extends AbstractGatewayFilterFactory<Dec
     private Mono<UserSession> fetchUserSession(String bearer, String app) {
         return sessionSvcClient.getUserSession(bearer, app)
                 .defaultIfEmpty(new UserSession(
-                        null, new AuthorizationBundle(null, null, app, List.of(), List.of(), 0)));
+                        null, new AuthorizationBundle(null, null, app, List.of(), List.of())));
     }
 
     private Mono<Void> forwardIfAuthorized(UserSession session,

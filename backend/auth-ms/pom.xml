@@ -49,6 +49,18 @@
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
 
+        <!-- Integrations -->
+        <dependency>
+            <groupId>com.mccss.sso.demo.backoffice</groupId>
+            <artifactId>backoffice-plugin</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.mccss.sso.demo.frontoffice</groupId>
+            <artifactId>frontoffice-plugin</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>

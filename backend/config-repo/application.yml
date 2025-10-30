@@ -11,6 +11,3 @@ integration:
     base-url: http://localhost:6005/api/session
   mock-external-ms:
     base-url: http://localhost:6006/api/mock-external
-  decisions:
-    ttl-sec: 18000   # cache TTL hint for session-ms
-

@@ -17,17 +17,10 @@ public class IntegrationProps {
     private Service permissionMs = new Service();
     private Service mockExternalMs = new Service();
     private Service sessionMs = new Service();
-    private Decisions decisions = new Decisions();
 
     @Getter
     @Setter
     public static class Service {
         private String baseUrl;
-    }
-
-    @Getter
-    @Setter
-    public static class Decisions {
-        private int ttlSec = 300;
     }
 }
