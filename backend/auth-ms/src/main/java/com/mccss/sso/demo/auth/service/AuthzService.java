@@ -36,7 +36,7 @@ public class AuthzService {
      *         an error if the application key is missing or invalid
      */
     public Mono<AuthMe> loadUserInfo(Jwt jwt, String appKey) {
-        log.info("Load and cache user authentication/authorization data");
+        log.info("Load and cache user authentication/authorization data. Application: {}", appKey);
 
         if (appKey == null) {
             return Mono.error(new ApplicationException(HttpStatus.BAD_REQUEST.value(),
@@ -60,6 +60,34 @@ public class AuthzService {
     }
 
     /**
+     * Updates and caches the user's session based on the provided JWT and application key.
+     * This method retrieves the user's session, updates the authentication data, and caches
+     * the updated session before returning the updated authentication details.
+     *
+     * @param jwt    the JWT containing claims and authentication data
+     * @param appKey the application key used to resolve the corresponding application and session
+     * @return a {@code Mono<Object>} containing the user's updated authentication details,
+     *         or an empty Mono if the session does not exist or has no authentication data
+     */
+    public Mono<AuthMe> touchSession(Jwt jwt, String appKey) {
+        log.info("Touch user session. Application: {}", appKey);
+        String bearer = buildBearerToken(jwt);
+        return sessionSvcClient.getUserSession(bearer, appKey)
+                .flatMap(userSession -> {
+                    if (userSession == null || userSession.getAuthMe() ==null) {
+                        return Mono.empty();
+                    }
+
+                    AuthMe old = userSession.getAuthMe();
+                    AuthMe updated = buildAuthMeFromJwt(jwt, old.getRoles());
+
+                    UserSession updatedUs = new UserSession(updated, userSession.getAuthz());
+                    return sessionSvcClient.cacheUserSession(updatedUs, bearer).thenReturn(updated);
+                });
+    }
+
+
+    /**
      * Retrieves user authentication and authorization data from the cache based on the provided JWT.
      * This method uses the specified application key to resolve the corresponding app and fetch
      * the cached user session, extracting authentication details from it.
@@ -70,7 +98,7 @@ public class AuthzService {
      *         if the session cannot be retrieved
      */
     public Mono<AuthMe> getUserInfo(Jwt jwt, String appKey) {
-        log.info("Get user authentication/authorization data from cache");
+        log.info("Get user authentication/authorization data from cache. Application: {}", appKey);
         return sessionSvcClient.getUserSession(buildBearerToken(jwt), appKey)
                 .map(UserSession::getAuthMe);
     }
@@ -100,4 +128,5 @@ public class AuthzService {
     private String buildBearerToken(Jwt jwt) {
         return "Bearer " + jwt.getTokenValue();
     }
+
 }

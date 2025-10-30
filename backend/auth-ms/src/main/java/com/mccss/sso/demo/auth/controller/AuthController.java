@@ -13,11 +13,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
 @Slf4j
 @RequiredArgsConstructor
 @RestController
@@ -57,23 +52,10 @@ public class AuthController {
                 .map(ResponseEntity::ok);
     }
 
-    @GetMapping("/me")
-    public Map<String, Object> me(@AuthenticationPrincipal Jwt jwt) {
-        Map<String, Object> m = new LinkedHashMap<>();
-        if (jwt == null) {
-            m.put("authenticated", false);
-            return m;
-        }
-        m.put("authenticated", true);
-        m.put("subject", jwt.getSubject());
-        m.put("name", jwt.getClaimAsString("name"));
-        m.put("email", jwt.getClaimAsString("email"));
-        m.put("issuer", jwt.getIssuer() != null ? jwt.getIssuer().toString() : null);
-        m.put("issuedAt", jwt.getIssuedAt());
-        m.put("expiresAt", jwt.getExpiresAt());
-        m.put("roles", Optional.ofNullable(jwt.getClaimAsStringList("groups")).orElse(List.of()));
-        // Include all claims for debugging SSO (remove in prod if noisy)
-        m.put("claims", jwt.getClaims());
-        return m;
+    @GetMapping("/touch")
+    public Mono<ResponseEntity<AuthMe>> touch(@AuthenticationPrincipal Jwt jwt,
+                                              @RequestHeader(name = "X-App", required = false) String app) {
+        return authzService.touchSession(jwt, app)
+                .map(ResponseEntity::ok);
     }
 }

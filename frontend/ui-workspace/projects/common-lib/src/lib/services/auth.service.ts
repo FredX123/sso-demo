@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { catchError, map, of, tap } from 'rxjs';
+import { catchError, of, tap } from 'rxjs';
 import { API_AUTH_BASE_URL, GATEWAY_BASE_URL } from '../core/tokens';
 import { AuthMe } from '../model/auth.models';
 import { AuthStateService } from './auth-state.service';
@@ -22,26 +22,24 @@ export class AuthService {
   /** set {silent:true} to avoid refresh/dialog on 401 */
   initAppAuth(opts?: { silent?: boolean }) {
     const headers = opts?.silent ? { [HDR_SILENT_AUTH]: 'true' } : undefined;
-    const separator = this.autuzUrl.includes('?') ? '&' : '?';
-    const url = `${this.autuzUrl}/load${separator}_=${Date.now()}`;
+    // NOTE: path is per app: /api/<frontoffice|backoffice>/auth/authorizations/load
+    const url = `${this.autuzUrl}/load`;
 
     return this.http.get<AuthMe>(url, { withCredentials: true, headers })
       .pipe(
         tap(me => this.authState.update(me)),
-        map(me => me),
         catchError(() => of({ authenticated: false } as AuthMe))
       );
   }
 
-  getAuthCache(opts?: { silent?: boolean }) {
+  /**
+   * Updates and caches the user's session based on the provided JWT
+   */
+  touch(opts?: { silent?: boolean }) {
     const headers = opts?.silent ? { [HDR_SILENT_AUTH]: 'true' } : undefined;
-    const separator = this.autuzUrl.includes('?') ? '&' : '?';
-    const url = `${this.autuzUrl}${separator}_=${Date.now()}`;
-    
-    return this.http.get<AuthMe>(url, { withCredentials: true, headers })
+    return this.http.get<AuthMe>(`${this.autuzUrl}/touch`, { withCredentials: true, headers })
       .pipe(
         tap(me => this.authState.update(me)),
-        map(me => me),
         catchError(() => of({ authenticated: false } as AuthMe))
       );
   }
@@ -70,4 +68,16 @@ export class AuthService {
 
     throw new Error('logout() requires a browser environment to redirect.');
   }
+
+  /** TODO Demo Only */
+  me(opts?: { silent?: boolean }) {
+    const headers = opts?.silent ? { [HDR_SILENT_AUTH]: 'true' } : undefined;
+    
+    return this.http.get<AuthMe>(this.autuzUrl, { withCredentials: true, headers })
+      .pipe(
+        tap(me => this.authState.update(me)),
+        catchError(() => of({ authenticated: false } as AuthMe))
+      );
+  }
+
 }

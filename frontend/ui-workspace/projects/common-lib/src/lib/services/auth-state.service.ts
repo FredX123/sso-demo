@@ -16,12 +16,10 @@ export class AuthStateService {
   }
 
   update(me: AuthMe) {
-    console.log("updating auth result: ", me.authenticated);
     this._me$.next(me);
   }
 
   clear() {
-    console.log("clearing auth result... ...");
     this._me$.next({ authenticated: false });
   }
 }
