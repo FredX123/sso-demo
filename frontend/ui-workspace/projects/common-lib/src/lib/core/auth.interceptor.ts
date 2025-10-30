@@ -1,4 +1,4 @@
-import { HttpInterceptorFn, HttpErrorResponse, HttpClient } from '@angular/common/http';
+import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { GATEWAY_BASE_URL } from './tokens';
 import { catchError, switchMap, throwError } from 'rxjs';
@@ -6,7 +6,6 @@ import { AuthService, DialogService } from 'common-lib';
 import { HDR_SILENT_AUTH } from './constants';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const http = inject(HttpClient);
   const gatewayBaseUrl = inject(GATEWAY_BASE_URL);
   const dialog = inject(DialogService);
   const auth = inject(AuthService);
@@ -41,15 +40,14 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       // Only handle 401 once, and never for excluded targets
       if (err.status === 401 && !triedRefresh) {
         triedRefresh = true;
-
         console.log('refresh token - auth interceptor');
         
-        // Try a single silent refresh
+        // Silent refresh only updates tokens
         return auth.refresh().pipe(
-          // refresh succeeded → pull /authorizations/me (to update header) → retry original request
-          switchMap(() => auth.initAppAuth()),
+          // refresh succeeded → pull /authorizations (to update header) → retry original request
+          switchMap(() => auth.touch({ silent: true })),
+          // Retry original request with session cookie
           switchMap(() => next(withCreds)),
-
           // refresh failed (likely not logged in) → show dialog and stop
           catchError(() => {
             dialog.open(

@@ -25,7 +25,7 @@ export class HomeComponent {
   constructor(private auth: AuthService, private backOfficeService: BackOfficeService) {}
 
   whoAmI(): void {
-    this.auth.getAuthCache().pipe(
+    this.auth.me().pipe(
       takeUntil(this.destroy$)
     ).subscribe(resp => {
       this.me = resp;
@@ -54,7 +54,7 @@ export class HomeComponent {
     ).subscribe({
       next: resp => this.data = resp,
       error: err => this.data = err.error ? err.error : err,
-      complete: () => console.log('API call completed')
+      complete: () => {}
     });
   }
 
