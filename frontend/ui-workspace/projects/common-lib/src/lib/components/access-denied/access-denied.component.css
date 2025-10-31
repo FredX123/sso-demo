@@ -1,0 +1,29 @@
+.ad-container {
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+}
+
+.ad-card {
+  background: #fff;
+  border-radius: 1rem;
+  padding: 2.5rem 3rem;
+  max-width: 620px;
+  text-align: center;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+
+  h1 {
+    margin-bottom: 1rem;
+  }
+
+  .muted {
+    color: #6b7280;
+    margin-bottom: 1.5rem;
+  }
+
+  .btn {
+    text-decoration: none;
+  }
+}

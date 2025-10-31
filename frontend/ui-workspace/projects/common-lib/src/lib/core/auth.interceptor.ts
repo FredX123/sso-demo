@@ -4,8 +4,10 @@ import { GATEWAY_BASE_URL } from './tokens';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { AuthService, DialogService } from 'common-lib';
 import { HDR_SILENT_AUTH } from './constants';
+import { Router } from '@angular/router';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  const router = inject(Router);
   const gatewayBaseUrl = inject(GATEWAY_BASE_URL);
   const dialog = inject(DialogService);
   const auth = inject(AuthService);
@@ -32,6 +34,12 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(withCreds).pipe(
     catchError((err: HttpErrorResponse) => {
+      // 1) NEW: handle 403 → just navigate
+      if (err.status === 403) {
+        router.navigate(['/access-denied']);
+        return throwError(() => err);
+      }
+
       // If this request opted into silent behavior, do NOT try refresh and do NOT show dialog.
       if (isSilent) {
         return throwError(() => err);
@@ -41,7 +49,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       if (err.status === 401 && !triedRefresh) {
         triedRefresh = true;
         console.log('refresh token - auth interceptor');
-        
+
         // Silent refresh only updates tokens
         return auth.refresh().pipe(
           // refresh succeeded → pull /authorizations (to update header) → retry original request

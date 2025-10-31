@@ -17,3 +17,5 @@ export * from './lib/components/dialog/dialog.component';
 
 export * from './lib/services/session-timer.service';
 export * from './lib/components/session-dialog/session-dialog.component';
+
+export * from './lib/components/access-denied/access-denied.component';
