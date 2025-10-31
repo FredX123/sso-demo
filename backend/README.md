@@ -18,7 +18,8 @@ backend/
 ├─ auth-ms/                # Example microservice
 ├─ frontoffice-ms/         # Example microservice
 ├─ backoffice-ms/          # Example microservice
-└─ common-lib/             # Shared DTOs, utils, mappers
+├─ common-lib/             # Shared DTOs, utils, mappers
+└─ mock-external-ms/       # Mock external microservice that provide user information
 ```
 
 ## Prerequisites
