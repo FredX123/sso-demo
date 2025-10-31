@@ -1,3 +1,8 @@
+
+- OKTA: CURRENTLY using **two** Web Apps (frontoffice + backoffice)
+- NEXT STEP: consolidate to **one** OKTA Web App shared by frontoffice and backoffice
+- GATEWAY: still responsible for resolving appKey from route (/api/frontoffice/**, /api/backoffice/**) and NOT from OKTA client id
+
 # 🧩 SSO Demo – Context Summary
 
 This repository demonstrates a **modular SSO architecture** built with **Spring Boot 3.5.x** and **Angular 19**, using **Okta** for authentication and **Spring Cloud Gateway + Redis** for authorization caching.
