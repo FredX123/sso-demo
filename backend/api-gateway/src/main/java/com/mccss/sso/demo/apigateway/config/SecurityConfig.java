@@ -1,7 +1,7 @@
 package com.mccss.sso.demo.apigateway.config;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -15,6 +15,7 @@ import org.springframework.security.oauth2.client.oidc.web.server.logout.OidcCli
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.DefaultReactiveOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
+import org.springframework.security.oauth2.client.web.server.WebSessionServerOAuth2AuthorizedClientRepository;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationEntryPoint;
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler;
@@ -33,15 +34,12 @@ import java.util.List;
 import static org.springframework.security.config.Customizer.withDefaults;
 
 @Slf4j
+@RequiredArgsConstructor
 @Configuration
 @EnableWebFluxSecurity
 public class SecurityConfig {
 
-    @Value("${client.redirect-url.frontoffice-app:}")
-    private String foAppUrl;
-
-    @Value("${client.redirect-url.backoffice-app:}")
-    private String boAppUrl;
+    private final AppOAuthProperties oAuthProperties;
 
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(
@@ -56,9 +54,9 @@ public class SecurityConfig {
                         .anyExchange().authenticated())
                 .exceptionHandling(e -> e
                         // APIs: 401 JSON (no redirect)
-                        .authenticationEntryPoint(SecurityConfig::handleUnauthorized)
+                        .authenticationEntryPoint(this::handleUnauthorized)
                         .accessDeniedHandler((exchange, exDenied) -> {
-                            return handleForbidden(exchange, HttpStatus.FORBIDDEN, Mono.error(exDenied));
+                            return handleForbidden(exchange, Mono.error(exDenied));
                         })
                 )
                 .oauth2Login(login -> login
@@ -69,17 +67,17 @@ public class SecurityConfig {
                 .build(); // ✅ TokenRelay is configured via application.yml route filters
     }
 
-    private static Mono<Void> handleForbidden(ServerWebExchange exchange, HttpStatus forbidden, Mono<Void> exDenied) {
+    private static Mono<Void> handleForbidden(ServerWebExchange exchange, Mono<Void> exDenied) {
         // APIs: 403 JSON
         var path = exchange.getRequest().getPath().value();
         if (path.startsWith("/api/")) {
-            exchange.getResponse().setStatusCode(forbidden);
+            exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
             return exchange.getResponse().setComplete();
         }
         return exDenied;
     }
 
-    private static Mono<Void> handleUnauthorized(ServerWebExchange exchange, AuthenticationException exAuth) {
+    private Mono<Void> handleUnauthorized(ServerWebExchange exchange, AuthenticationException exAuth) {
         var path = exchange.getRequest().getPath().value();
         if (path.startsWith("/api/")) {
             exchange.getResponse().setStatusCode(org.springframework.http.HttpStatus.UNAUTHORIZED);
@@ -87,7 +85,7 @@ public class SecurityConfig {
         }
         // Pages: fall back to default redirect-to-login (handled by oauth2Login())
         return new RedirectServerAuthenticationEntryPoint(
-                "/oauth2/authorization/frontoffice-app"  // a sane default; see note below for per-app
+                "/oauth2/authorization/" + oAuthProperties.getDefaultRegistrationId()
         ).commence(exchange, exAuth);
     }
 
@@ -136,6 +134,11 @@ public class SecurityConfig {
         };
     }
 
+    @Bean
+    public ServerOAuth2AuthorizedClientRepository authorizedClientRepository() {
+        return new WebSessionServerOAuth2AuthorizedClientRepository();
+    }
+
     private ServerAuthenticationSuccessHandler redirectToAngular() {
         return (exchange, authentication) -> {
             var webExchange = exchange.getExchange();
@@ -164,7 +167,7 @@ public class SecurityConfig {
             ReactiveClientRegistrationRepository clientRegistrationRepository) {
 
         return (exchange, authentication) -> {
-            String redirectUri = getClientRedirectUrl(
+            String redirectUri = getClientLogoutRedirectUrl(
                     authentication instanceof OAuth2AuthenticationToken o ? o : null);
 
             var handler = new OidcClientInitiatedServerLogoutSuccessHandler(clientRegistrationRepository);
@@ -175,18 +178,41 @@ public class SecurityConfig {
     }
 
     private String getClientRedirectUrl(OAuth2AuthenticationToken authentication) {
-        String client = (authentication != null) ? authentication.getAuthorizedClientRegistrationId() : null;
-        if ("backoffice-app".equals(client)) {
-            return boAppUrl;
+        String regId = (authentication != null) ? authentication.getAuthorizedClientRegistrationId() : null;
+        if (regId != null) {
+            return oAuthProperties.findByRegistrationId(regId)
+                    .map(AppOAuthProperties.AppRegistration::getAngularRedirect)
+                    .orElseGet(this::defaultAngularRedirect);
         }
+        return defaultAngularRedirect();
+    }
 
-        return foAppUrl;
+    private String getClientLogoutRedirectUrl(OAuth2AuthenticationToken authentication) {
+        String regId = (authentication != null) ? authentication.getAuthorizedClientRegistrationId() : null;
+        if (regId != null) {
+            return oAuthProperties.findByRegistrationId(regId)
+                    .map(AppOAuthProperties.AppRegistration::getLogoutRedirect)
+                    .orElseGet(this::defaultLogoutRedirect);
+        }
+        return defaultLogoutRedirect();
+    }
+
+    private String defaultAngularRedirect() {
+        return oAuthProperties.requireByRegistrationId(oAuthProperties.getDefaultRegistrationId())
+                .getAngularRedirect();
+    }
+
+    private String defaultLogoutRedirect() {
+        return oAuthProperties.requireByRegistrationId(oAuthProperties.getDefaultRegistrationId())
+                .getLogoutRedirect();
     }
 
     @Bean
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:4200", "http://localhost:4201"));
+        config.setAllowedOrigins(List.of(
+                "http://localhost:4200",
+                "http://localhost:4201"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true); // ✅ important for cookies/session-based auth
@@ -196,4 +222,3 @@ public class SecurityConfig {
         return source;
     }
 }
-

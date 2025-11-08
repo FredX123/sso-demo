@@ -1,6 +1,7 @@
 package com.mccss.sso.demo.apigateway.token;
 
-import org.springframework.beans.factory.annotation.Value;
+import com.mccss.sso.demo.apigateway.config.AppOAuthProperties;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.OAuth2AuthorizeRequest;
@@ -21,6 +22,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/token")
 public class TokenController {
@@ -32,11 +34,12 @@ public class TokenController {
     public TokenController(
             TokenService tokenService,
             ServerOAuth2AuthorizedClientRepository authorizedClientRepo,
-            @Value("#{'${app.oauth2.client-ids:frontoffice-app,backoffice-app}'.split(',')}") List<String> knownClientIds) {
+            AppOAuthProperties appOAuthProperties) {
         this.tokenService = tokenService;
         this.authorizedClientRepo = authorizedClientRepo;
-        // trim spaces just in case
-        this.knownClientIds = knownClientIds.stream().map(String::trim).collect(Collectors.toList());
+        this.knownClientIds = appOAuthProperties.getRegistrationIds().stream()
+                .map(String::trim)
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/refresh")

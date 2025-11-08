@@ -187,6 +187,23 @@ Located in `config-repo/`.
 
 ---
 
+## Okta Setup (Shared Web App)
+
+Both Front Office and Back Office now authenticate through a **single** Okta Web Application.
+
+1. Create (or reuse) one Web Application with **Authorization Code** + **Refresh Token** grants.
+2. Configure its credentials in `config-repo/api-gateway.yml` under `spring.security.oauth2.client.registration.shared-okta`.
+3. Add the following **sign-in redirect URIs**:
+   - `https://localhost:6001/login/oauth2/code/frontoffice-app`
+   - `https://localhost:6001/login/oauth2/code/backoffice-app`
+   - *(optional)* add the `http://` variants if TLS termination is not enabled locally.
+4. Add these **post-logout redirect URIs** so Angular apps receive control after logout:
+   - `http://localhost:4200`
+   - `http://localhost:4201`
+5. No additional Okta apps are needed. Onboarding another UI only requires extending the `app.oauth2.apps` map; runtime registrations are derived automatically.
+
+---
+
 ## 🧠 AI & Developer Assistance
 
 For AI assistants (ChatGPT / Codex) or new contributors working on the **SSO Demo** project:

@@ -83,20 +83,12 @@ spring:
     oauth2:
       client:
         registration:
-          frontoffice-app:
+          shared-okta:
             provider: okta
-            client-id: 0oaqp2kj9zEIU0LTy5d7
-            client-secret: J21HhBvkKwJeoA2Rdb7SExC4YbRyS2fTUo3n0XLCx9yeaWKjDj_NcgpB5AgCDL4C
+            client-id: 0oar9oovewJd7YCav5d7
+            client-secret: TPlUksnDr4vgeTrw1Z_394flkINBxAkDHoexCRuwbn0aW8I3YC7uxABIr8hXR-Pf
             scope: openid, profile, email, offline_access
             authorization-grant-type: authorization_code
-            redirect-uri: "{baseUrl}/login/oauth2/code/frontoffice-app"
-          backoffice-app:
-            provider: okta
-            client-id: 0oaqp2q4zy9xzTqE95d7
-            client-secret: eSNA20W20TgxcVLAXajyvGjei7cB7S48phxmy_RIUSCh4qZNcO2UfaoXUhPqgYiS
-            scope: openid, profile, email, offline_access
-            authorization-grant-type: authorization_code
-            redirect-uri: "{baseUrl}/login/oauth2/code/backoffice-app"
         provider:
           okta:
             issuer-uri: https://dev-50623690.okta.com/oauth2/default
@@ -110,11 +102,20 @@ eureka:
     prefer-ip-address: true
     hostname: localhost
 
-client:
-  redirect-url:
-    frontoffice-app: http://localhost:4200
-    backoffice-app: http://localhost:4201
-
 app:
   oauth2:
-    client-ids: frontoffice-app,backoffice-app
+    base-registration-id: shared-okta
+    default-registration-id: frontoffice-app
+    apps:
+      frontoffice:
+        registration-id: frontoffice-app
+        client-name: Frontoffice
+        redirect-uri: "{baseUrl}/login/oauth2/code/frontoffice-app"
+        angular-redirect: http://localhost:4200
+        logout-redirect: http://localhost:4200
+      backoffice:
+        registration-id: backoffice-app
+        client-name: Backoffice
+        redirect-uri: "{baseUrl}/login/oauth2/code/backoffice-app"
+        angular-redirect: http://localhost:4201
+        logout-redirect: http://localhost:4201
