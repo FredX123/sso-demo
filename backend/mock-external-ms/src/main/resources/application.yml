@@ -7,7 +7,7 @@ spring:
 
 mock:
   users:
-    - subject: student1sso@mailinator.com
+    - subject: 00ux9q51j9gC67Mb5697   # mccsstest1@mailinator.com
       roles: [ADMIN, USER]
-    - subject: student2sso@mailinator.com
+    - subject: 00ux9q60csGvJNV4x697   # student2sso@mailinator.com
       roles: [USER]

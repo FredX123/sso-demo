@@ -85,21 +85,21 @@ spring:
         registration:
           frontoffice-app:
             provider: okta
-            client-id: 0oaqp2kj9zEIU0LTy5d7
-            client-secret: J21HhBvkKwJeoA2Rdb7SExC4YbRyS2fTUo3n0XLCx9yeaWKjDj_NcgpB5AgCDL4C
+            client-id: 0oax9q9zdyAFUmIeT697
+            client-secret: abmu-k63mETYY6Hc8eHeEUPOWUoZmRpmlHu1JApR50CrVVD8SYj-a8iP9XDTK-19
             scope: openid, profile, email, offline_access
             authorization-grant-type: authorization_code
             redirect-uri: "{baseUrl}/login/oauth2/code/frontoffice-app"
           backoffice-app:
             provider: okta
-            client-id: 0oaqp2q4zy9xzTqE95d7
-            client-secret: eSNA20W20TgxcVLAXajyvGjei7cB7S48phxmy_RIUSCh4qZNcO2UfaoXUhPqgYiS
+            client-id: 0oax9qao1vwTnMvUy697
+            client-secret: zWvL24kZnnOcyR00EkAmLKQmn6zLF4XCTa2y_QKl-j1hOexHTS1L1RErkIbnlpl6
             scope: openid, profile, email, offline_access
             authorization-grant-type: authorization_code
             redirect-uri: "{baseUrl}/login/oauth2/code/backoffice-app"
         provider:
           okta:
-            issuer-uri: https://dev-50623690.okta.com/oauth2/default
+            issuer-uri: https://integrator-5973406.okta.com/oauth2/default
 
 eureka:
   client:
