@@ -53,10 +53,13 @@ spring:
         registration:
           shared-okta:
             provider: okta
-            client-id: 0oar9oovewJd7YCav5d7
-            client-secret: TPlUksnDr4vgeTrw1Z_394flkINBxAkDHoexCRuwbn0aW8I3YC7uxABIr8hXR-Pf
+            client-id: 0oaxaddl5vLYx2Jhn697
+            client-secret: e4BB2KvmxcxxFjJ2KGIwDA3QUn2L64Z8bKAXWHC30s5XA_NgntWCd4QFt7jPk6Cv
             scope: openid, profile, email, offline_access
             authorization-grant-type: authorization_code
+        provider:
+          okta:
+            issuer-uri: https://integrator-5973406.okta.com/oauth2/default
 
 app:
   oauth2:
@@ -161,7 +164,7 @@ loginUrl: `${baseUrl}/oauth2/authorization/backoffice-app?redirectTo=/my-applica
 ### 3.4 Validation checklist
 
 1. Restart Config Server + gateway after editing `config-repo`.
-2. Hit `/oauth2/authorization/frontoffice-app?redirectTo=/dashboard` – expect Okta to redirect back to `/login/oauth2/code/frontoffice-app` and then to `http://localhost:4200/dashboard`.
+2. Hit `/oauth2/authorization/frontoffice-app?redirectTo=/dashboard` – expect Okta to redirect back to `/login/oauth2/code/frontoffice-app` and then to `http://localhost:4200/dashboard`. (Not completed)
 3. Repeat for backoffice; confirm logout flows bring you back to the correct Angular SPA.
 4. Exercise `/api/token/refresh?client=frontoffice-app` to verify refresh tokens are reused independent of the shared Okta registration.
 
