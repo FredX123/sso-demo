@@ -113,37 +113,3 @@ sequenceDiagram
     Angular->>Dialog: open("Authentication Required")
   end
 ```
-
----
-
-## 6) Refresh Token Rotation vs Persistent
-```mermaid
-flowchart LR
-  A[Okta /v1/token using refresh token] --> B{Refresh behavior}
-  B -- Persistent --> C[Return new access token only]
-  B -- Rotate --> D[Return new access token and refresh token]
-  C --> E[Gateway updates access token in session]
-  D --> F[Gateway updates access and refresh token in session]
-```
-
----
-
-## 7) Alternative Model - HttpOnly cookies for access/refresh tokens
-```mermaid
-sequenceDiagram
-  participant Browser
-  participant Gateway as Gateway (BFF)
-  participant Okta as Okta (IdP)
-
-  Browser->>Gateway: GET /api/data (cookies auto-attached)
-  Note over Gateway: Access token expired, rely on refresh token cookie
-  Gateway->>Okta: POST /v1/token using refresh token
-  Okta-->>Gateway: new access token (+ optional refresh token)
-  Gateway-->>Browser: Set-Cookie access_token HttpOnly
-  alt Rotation enabled
-    Gateway-->>Browser: Set-Cookie refresh_token HttpOnly (replace)
-  else No rotation
-    Gateway-->>Browser: Keep existing refresh_token cookie
-  end
-  Note over Browser: HttpOnly cookies cannot be read from JavaScript
-```

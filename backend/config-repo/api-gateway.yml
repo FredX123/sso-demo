@@ -85,13 +85,13 @@ spring:
         registration:
           shared-okta:
             provider: okta
-            client-id: 0oar9oovewJd7YCav5d7
-            client-secret: TPlUksnDr4vgeTrw1Z_394flkINBxAkDHoexCRuwbn0aW8I3YC7uxABIr8hXR-Pf
+            client-id: 0oaxaddl5vLYx2Jhn697
+            client-secret: e4BB2KvmxcxxFjJ2KGIwDA3QUn2L64Z8bKAXWHC30s5XA_NgntWCd4QFt7jPk6Cv
             scope: openid, profile, email, offline_access
             authorization-grant-type: authorization_code
         provider:
           okta:
-            issuer-uri: https://dev-50623690.okta.com/oauth2/default
+            issuer-uri: https://integrator-5973406.okta.com/oauth2/default
 
 eureka:
   client:

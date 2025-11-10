@@ -10,7 +10,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://dev-50623690.okta.com/oauth2/default
+          issuer-uri: https://integrator-5973406.okta.com/oauth2/default
 
 eureka:
   client:
